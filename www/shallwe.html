@@ -1,30 +1,58 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>ShallWe</title><link rel="stylesheet" href="app.css"></head>
 <body><main><a class="back" href="index.html">Back</a><h1>Places we love</h1>
+<input id="q" type="search" placeholder="Search places" aria-label="Search places">
+<p style="margin:10px 0"><label style="display:inline;font-weight:400"><input type="checkbox" id="open" style="width:auto"> Open now</label>
+&nbsp; <label style="display:inline;font-weight:400"><input type="checkbox" id="dog" style="width:auto"> Dogs welcome</label>
+&nbsp; <label style="display:inline;font-weight:400"><input type="checkbox" id="veg" style="width:auto"> Vegetarian</label></p>
 <p id="st" class="note">Loading.</p><div id="list"></div>
+<button class="alt" id="more" hidden>Show more</button>
 <button class="alt" id="plan">Ask Hannah to plan a night</button>
+<p class="note">Hours change. Call ahead when you can.</p>
 </main><script src="app.js"></script>
 <script>
-var list=document.getElementById('list'),st=document.getElementById('st'),fav={};
+var list=document.getElementById('list'),st=document.getElementById('st'),moreB=document.getElementById('more'),fav={},ALL=[],shown=40,cache=null;
 document.getElementById('plan').onclick=function(){openSite('/shallwe-plan.html')};
-function draw(items){
-  list.textContent='';
-  items.forEach(function(p){
-    var name=p.name||p.title; if(!name)return;
-    var c=el('div','','card'); c.appendChild(el('h3',name));
-    var sub=[p.type,p.hood,p.price].filter(Boolean).join(' · '); if(sub)c.appendChild(el('p',sub,'note'));
-    var d=p.note||''; if(d)c.appendChild(el('p',String(d).slice(0,300)));
-    var q=p.address||name+' Chicago'; 
-    var row=el('div','','row');
-    var f=el('button',fav[name]?'Saved':'Save','alt'); f.onclick=function(){fav[name]=!fav[name];kvSet('fav',JSON.stringify(fav));f.textContent=fav[name]?'Saved':'Save'};
-    row.appendChild(f);
-    var m=el('button','Map','alt'); m.onclick=function(){var u='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);if(P.Browser)P.Browser.open({url:u});else window.open(u)}; row.appendChild(m);
-    var s=el('button','Share','alt'); s.onclick=function(){var t=name+' - from Hermitage House Chicago';if(P.Share)P.Share.share({text:t});else if(navigator.share)navigator.share({text:t})}; row.appendChild(s);
-    c.appendChild(row); list.appendChild(c);
-  });
+var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function chicagoNow(){var p=new Date().toLocaleString('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'numeric',minute:'numeric',hour12:false}).split(/[, :]+/);return{day:p[0],min:(+p[1]%24)*60+(+p[2])}}
+function mins(h,m,ap){h=+h%12;if(/p/i.test(ap))h+=12;return h*60+(+m||0)}
+// true when the place's own hours say it is open now, false when they say closed, null when unknown
+function isOpen(p){
+  if(!p.hours)return null; var n=chicagoNow(),line=null;
+  p.hours.split('\n').forEach(function(l){if(l.indexOf(n.day)===0)line=l});
+  if(!line)return null; if(/closed/i.test(line))return false;
+  var t=[],re=/(\d{1,2})(?::(\d\d))?\s*(am|pm)/ig,m; while((m=re.exec(line)))t.push(mins(m[1],m[2],m[3]));
+  if(t.length<2)return null; return t[0]<=t[1]?(n.min>=t[0]&&n.min<t[1]):(n.min>=t[0]||n.min<t[1]);
 }
-function pick(d){ if(Array.isArray(d))return d; if(d&&Array.isArray(d.places))return d.places; if(d&&Array.isArray(d.items))return d.items; if(d&&d.places&&typeof d.places==='object')return Object.values(d.places); return []; }
-kv('fav').then(function(v){fav=v?JSON.parse(v):{}; return kv('guide')}).then(function(cached){
-  if(cached){draw(JSON.parse(cached)); st.textContent='Saved on this phone. Updating.'}
-  api('/api/guide').then(function(d){var items=pick(d); if(items.length){kvSet('guide',JSON.stringify(items));draw(items);st.textContent=''}else if(!cached)st.textContent='Could not load places. Check your connection.'; else st.textContent='Showing places saved on this phone.'});
+function match(p){
+  var q=document.getElementById('q').value.trim().toLowerCase();
+  if(q&&[p.name,p.type,p.hood,p.note].join(' ').toLowerCase().indexOf(q)<0)return false;
+  if(document.getElementById('dog').checked&&p.dog!=='yes')return false;
+  if(document.getElementById('veg').checked&&p.v!=='yes'&&p.v!=='all')return false;
+  if(document.getElementById('open').checked&&isOpen(p)!==true)return false;
+  return true;
+}
+function card(p){
+  var name=p.name,c=el('div','','card'); c.appendChild(el('h3',name));
+  var sub=[p.type,p.hood,p.price].filter(Boolean).join(' · '); if(sub)c.appendChild(el('p',sub,'note'));
+  if(p.note)c.appendChild(el('p',(p.note.length>300?p.note.slice(0,300).replace(/\s+\S*$/,'')+'…':p.note)));
+  var q=p.address||name+' Chicago',row=el('div','','row');
+  var f=el('button',fav[name]?'Saved':'Save','alt'); f.onclick=function(){fav[name]=!fav[name];kvSet('fav',JSON.stringify(fav));f.textContent=fav[name]?'Saved':'Save'}; row.appendChild(f);
+  var m=el('button','Map','alt'); m.onclick=function(){var u='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);if(P.Browser)P.Browser.open({url:u});else window.open(u)}; row.appendChild(m);
+  var s=el('button','Share','alt'); s.onclick=function(){var t=name+' - from Hermitage House Chicago';if(P.Share)P.Share.share({text:t});else if(navigator.share)navigator.share({text:t})}; row.appendChild(s);
+  c.appendChild(row); return c;
+}
+function draw(){
+  var r=ALL.filter(match); list.textContent=''; r.slice(0,shown).forEach(function(p){list.appendChild(card(p))});
+  moreB.hidden=r.length<=shown; st.textContent=r.length+(r.length===1?' place':' places');
+}
+moreB.onclick=function(){shown+=40;draw()};
+['q','open','dog','veg'].forEach(function(i){document.getElementById(i).oninput=function(){shown=40;draw()}});
+function pick(d){return d&&Array.isArray(d.places)?d.places:[]}
+// the list is large, so the saved copy lives in the phone's page storage rather than preferences
+kv('fav').then(function(v){fav=v?JSON.parse(v):{}; try{cache=localStorage.getItem('guide')}catch(e){}
+  if(cache){ALL=JSON.parse(cache);draw()}
+  api('/api/guide').then(function(d){var items=pick(d).filter(function(p){return p.name});
+    if(items.length){ALL=items;try{localStorage.setItem('guide',JSON.stringify(items))}catch(e){}draw()}
+    else if(!cache)st.textContent='Could not load places. Check your connection.'});
 });
 </script></body></html>

@@ -1,6 +1,13 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Hermitage House Chicago</title>
-<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4efe6;font-family:Georgia,serif;color:#2b2b2b;text-align:center}</style>
-</head><body><div><h1>Hermitage House Chicago</h1><p>Opening&hellip;</p></div></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Hermitage House Chicago</title><link rel="stylesheet" href="app.css"></head>
+<body><main>
+<h1>Hermitage House Chicago</h1>
+<a class="btn" href="stay.html">My stay</a>
+<a class="btn alt" href="shallwe.html">ShallWe: places we love</a>
+<a class="btn alt" href="contact.html">Contact the host</a>
+<a class="btn alt" href="emergency.html">Emergency</a>
+<button class="alt" id="req">Request a new stay</button>
+<p class="note">Rates and availability are on our website.</p>
+</main>
+<script src="app.js"></script>
+<script>document.getElementById('req').onclick=function(){openSite('/request.html')}</script>
+</body></html>

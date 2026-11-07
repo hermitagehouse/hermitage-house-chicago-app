@@ -1,0 +1,21 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Contact the host</title><link rel="stylesheet" href="app.css"></head>
+<body><main><a class="back" href="index.html">Back</a><h1>Contact the host</h1>
+<p>Send Hannah a message. For an emergency, call 911 instead.</p>
+<label for="n">Your name</label><input id="n" maxlength="80">
+<label for="e">Your email</label><input id="e" type="email" maxlength="120">
+<label for="p">Phone (optional)</label><input id="p" type="tel" maxlength="40">
+<label for="m">Message</label><textarea id="m" rows="5" maxlength="2000"></textarea>
+<button id="go" style="margin-top:14px">Send</button><p id="out" class="err"></p>
+</main><script src="app.js"></script>
+<script>
+var out=document.getElementById('out'),go=document.getElementById('go');
+go.onclick=function(){
+  var v=function(i){return document.getElementById(i).value.trim()};
+  if(!v('n')||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('e'))||!v('m')){out.textContent='Add your name, a valid email and a message.';return}
+  go.disabled=true;
+  api('/api/message',{name:v('n'),email:v('e'),phone:v('p'),message:v('m'),page:'app'}).then(function(r){
+    if(r.ok){out.className='ok';out.textContent='Sent on '+stamp()+'. Hannah will reply by email.'}
+    else{go.disabled=false;out.className='err';out.textContent=r.message||'Try again.'}
+  });
+};
+</script></body></html>

@@ -1,0 +1,99 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>My stay</title><link rel="stylesheet" href="app.css"></head>
+<body><main><a class="back" href="index.html">Back</a><h1>My stay</h1><div id="box"><p>One moment.</p></div></main>
+<script src="app.js"></script>
+<script>
+var box = document.getElementById('box'), S = null;
+var CHECK = ['Dishes done and counters wiped', 'Trash taken out', 'Windows and doors closed and locked', 'Heat and lights turned off', 'Belongings checked, including chargers', 'Keys or fobs left as instructed'];
+function clear() { box.textContent = ''; }
+function parseLink(txt) { try { var u = new URL(txt.trim()); var id = u.searchParams.get('id'), t = u.searchParams.get('t'); return id && t ? { id: id, t: t } : null; } catch (e) { return null; } }
+function entry(msg) {
+  clear();
+  box.appendChild(el('p', 'Paste the private stay link from your email. It stays on this phone.'));
+  var i = el('input'); i.type = 'url'; i.placeholder = 'Paste your stay link'; box.appendChild(i);
+  var b = el('button', 'Open my stay'); b.style.marginTop = '12px'; box.appendChild(b);
+  var m = el('p', msg || '', 'err'); box.appendChild(m);
+  b.onclick = function () {
+    var l = parseLink(i.value); if (!l) { m.textContent = 'That does not look like your stay link.'; return; }
+    api('/api/stay-update?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)).then(function (d) {
+      if (!d.ok) { m.textContent = d.message || 'This link is not valid anymore.'; return; }
+      kvSet('stay', JSON.stringify(l)).then(function () { show(l, d); });
+    });
+  };
+}
+function post(extra) { return api('/api/stay-update', Object.assign({ id: S.id, t: S.t }, extra)); }
+function sent(where, label) { where.textContent = ''; where.appendChild(el('p', 'Sent. Hannah received your ' + label + ' on ' + stamp() + '. Nothing changes until we confirm it in writing.', 'ok')); }
+function quick(label, note, d) {
+  var b = el('button', label, 'alt'), m = el('p', '', 'note');
+  b.onclick = function () { b.disabled = true; post({ note: note }).then(function (r) { if (r.ok) { b.textContent = label + ' - sent ' + stamp(); } else { b.disabled = false; m.textContent = r.message || 'Try again.'; } }); };
+  box.appendChild(b); box.appendChild(m);
+}
+function request(kind, d) {
+  var wrap = el('div'), isCancel = kind === 'cancel';
+  var b = el('button', isCancel ? 'Request to cancel' : 'Request a change', 'alt');
+  var form = el('div'); form.hidden = true;
+  form.appendChild(el('p', isCancel ? 'This sends your request to Hannah. Your stay is not cancelled until we confirm it in writing. The day we receive your request is the day used for your cancellation terms, and any refund follows the terms you agreed to when you booked.' : 'This sends your request to Hannah. Nothing changes until we confirm it in writing. New dates can change the price, and every stay stays 32 nights or longer.', 'card'));
+  var s, e, g;
+  if (!isCancel) { form.appendChild(el('label', 'New check-in')); s = el('input'); s.type = 'date'; form.appendChild(s); form.appendChild(el('label', 'New check-out')); e = el('input'); e.type = 'date'; form.appendChild(e); form.appendChild(el('label', 'Number of guests')); g = el('input'); g.type = 'number'; g.min = 1; g.max = 20; form.appendChild(g); }
+  form.appendChild(el('label', 'Anything else Hannah should know')); var n = el('textarea'); n.rows = 3; n.maxLength = 900; form.appendChild(n);
+  var go = el('button', 'Send request'); go.style.marginTop = '12px'; form.appendChild(go); var m = el('p', '', 'err'); form.appendChild(m);
+  b.onclick = function () { form.hidden = !form.hidden; };
+  go.onclick = function () {
+    var body = {};
+    if (isCancel) body.note = 'REQUEST TO CANCEL (sent from the app). ' + n.value;
+    else { var c = {}; if (s.value && e.value) { c.start = s.value; c.end = e.value; } if (g.value) c.guests = +g.value; if (!Object.keys(c).length && !n.value.trim()) { m.textContent = 'Add the change you need.'; return; } if (Object.keys(c).length) body.change = c; body.note = n.value; }
+    go.disabled = true;
+    post(body).then(function (r) { if (r.ok) sent(wrap, isCancel ? 'cancel request' : 'change request'); else { go.disabled = false; m.textContent = r.message || 'Try again.'; } });
+  };
+  wrap.appendChild(b); wrap.appendChild(form); box.appendChild(wrap);
+}
+function remind(d) {
+  var N = P.LocalNotifications; if (!N) return;
+  var b = el('button', 'Remind me about my stay', 'alt'), m = el('p', '', 'note');
+  b.onclick = function () {
+    N.requestPermissions().then(function (p) {
+      if (p.display !== 'granted') { m.textContent = 'Notifications are off for this app. You can turn them on in your phone settings.'; return; }
+      function at(day, h, id, title, body) { var t = new Date(day + 'T' + h + ':00'); if (t > new Date()) return { id: id, title: title, body: body, schedule: { at: t } }; }
+      function before(day, k) { var t = new Date(day + 'T12:00:00'); t.setDate(t.getDate() - k); return t.toISOString().slice(0, 10); }
+      var list = [at(before(d.start, 1), '09:00', 101, 'Arriving tomorrow', 'Open My stay for your check-in details.'), at(before(d.end, 1), '18:00', 102, 'Checkout tomorrow', 'Open My stay for the checkout list.')].filter(Boolean);
+      N.schedule({ notifications: list }).then(function () { m.textContent = list.length ? 'Reminders set on this phone.' : 'Your dates have already passed.'; });
+    });
+  };
+  box.appendChild(b); box.appendChild(m);
+}
+function checklist() {
+  box.appendChild(el('h2', 'Checkout checklist'));
+  kv('checks').then(function (v) {
+    var done = v ? JSON.parse(v) : [], cards = el('div'); box.appendChild(cards);
+    function draw() {
+      cards.textContent = '';
+      CHECK.forEach(function (c, i) { var l = el('label'); l.style.fontWeight = '400'; var x = el('input'); x.type = 'checkbox'; x.style.width = 'auto'; x.style.marginRight = '8px'; x.checked = done.indexOf(i) > -1; x.onchange = function () { done = x.checked ? done.concat(i) : done.filter(function (k) { return k !== i; }); kvSet('checks', JSON.stringify(done)); }; l.appendChild(x); l.appendChild(document.createTextNode(c)); cards.appendChild(l); });
+      var all = el('button', 'All done', 'alt'); all.onclick = function () { done = CHECK.map(function (_, i) { return i; }); kvSet('checks', JSON.stringify(done)); draw(); }; cards.appendChild(all);
+    }
+    draw();
+  });
+}
+function show(l, d) {
+  S = l; clear();
+  box.appendChild(el('p', 'Hello, ' + d.name + '.', 'note'));
+  var c = el('div', '', 'card'); c.appendChild(el('h3', 'Apartment ' + d.apt)); c.appendChild(el('p', us(d.start) + ' to ' + us(d.end))); c.appendChild(el('p', d.guests + (d.guests == 1 ? ' guest' : ' guests') + (d.pets ? ', pets' : '') + (d.garage ? ', garage' : ''))); box.appendChild(c);
+  box.appendChild(el('p', 'Your check-in details (address, door code and Wi-Fi) are in your private stay link and email.', 'note'));
+  var a = el('a', 'Open my full stay page', 'btn'); a.href = '#'; a.onclick = function (ev) { ev.preventDefault(); openSite('/update.html?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)); }; box.appendChild(a);
+  remind(d);
+  box.appendChild(el('h2', 'Let Hannah know'));
+  quick("I've arrived", "I've arrived (sent from the app).", d); quick('Running late', 'Running late (sent from the app).', d);
+  checklist();
+  box.appendChild(el('h2', 'Change or cancel'));
+  request('change', d); request('cancel', d);
+  box.appendChild(el('h2', 'Policies'));
+  var pl = el('a', 'Read the full cancellation policy'); pl.href = '#'; pl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; box.appendChild(pl);
+  box.appendChild(el('p', 'The full policy is the one that applies to your stay.', 'note'));
+  var f = el('button', 'Forget this stay on this phone', 'alt'); f.style.marginTop = '24px';
+  f.onclick = function () { kvDel('stay'); kvDel('checks'); if (P.LocalNotifications) P.LocalNotifications.cancel({ notifications: [{ id: 101 }, { id: 102 }] }); S = null; entry('This stay has been removed from this phone.'); };
+  box.appendChild(f);
+}
+kv('stay').then(function (v) {
+  if (!v) return entry();
+  var l = JSON.parse(v);
+  api('/api/stay-update?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)).then(function (d) { if (d.ok) show(l, d); else { kvDel('stay'); entry(d.message); } });
+});
+</script></body></html>

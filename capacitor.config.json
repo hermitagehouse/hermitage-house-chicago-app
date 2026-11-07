@@ -1,0 +1,17 @@
+{
+  "appId": "com.hermitagehousechicago.app",
+  "appName": "Hermitage House Chicago",
+  "webDir": "www",
+  "server": {
+    "url": "https://hermitagehousechicago.com/",
+    "cleartext": false,
+    "allowNavigation": ["hermitagehousechicago.com", "www.hermitagehousechicago.com"],
+    "errorPath": "offline.html"
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "plugins": {
+    "SplashScreen": { "launchAutoHide": true, "launchShowDuration": 800 }
+  }
+}

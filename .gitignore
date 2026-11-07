@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/capacitor-cordova-android-plugins/
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+*.keystore
+*.jks
+*.p12
+*.mobileprovision

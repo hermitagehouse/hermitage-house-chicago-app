@@ -65,6 +65,7 @@ a{color:var(--green);font-weight:600}
 </main>
 <script src="app.js"></script>
 <script>
+kv("stay").then(function(st){if(st)document.getElementById("addr").textContent="Your address shows here from the day before you arrive through checkout day."});
 kv("safety").then(function(v){if(!v)return;var s=JSON.parse(v);if(s.address){var a=document.getElementById("addr");a.textContent="";a.appendChild(el("strong",s.address))}if(s.extinguisher)document.getElementById("fire").textContent+=" The fire extinguisher is "+s.extinguisher+"."})
 </script>
 </body>

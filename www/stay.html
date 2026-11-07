@@ -86,7 +86,7 @@ function details(l) {
     } else c.appendChild(el('p', 'Your check-in details show here the day before you arrive.'));
     [['Check-in', d.checkInSteps], ['Checkout', d.checkOutSteps], ['Parking', d.parkingNote], ['Fire extinguisher', d.extinguisher]].forEach(function (x) { var r = row(x[0], x[1]); if (r) c.appendChild(r); });
     wrap.appendChild(c);
-    if (d.extinguisher || d.address) kvSet('safety', JSON.stringify({ address: d.address || '', extinguisher: d.extinguisher || '' }));
+    kvSet('safety', JSON.stringify({ address: d.address || '', extinguisher: d.extinguisher || '' }));
     var t = d.terms && d.terms.words;
     wrap.appendChild(el('h2', 'Cancellation'));
     if (t) { var cc = el('div', '', 'card'); cc.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + '.')); cc.appendChild(el('p', 'This is a short version. The full cancellation policy is the one that applies.', 'note')); wrap.appendChild(cc); }

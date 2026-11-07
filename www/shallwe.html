@@ -1,9 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>ShallWe</title><link rel="stylesheet" href="app.css"></head>
-<body><main><a class="back" href="index.html">Back</a><h1>Places we love</h1>
+<body class="sw"><main><h1>Places we love</h1>
 <input id="q" type="search" placeholder="Search places" aria-label="Search places">
-<p style="margin:10px 0"><label style="display:inline;font-weight:400"><input type="checkbox" id="open" style="width:auto"> Open now</label>
-&nbsp; <label style="display:inline;font-weight:400"><input type="checkbox" id="dog" style="width:auto"> Dogs welcome</label>
-&nbsp; <label style="display:inline;font-weight:400"><input type="checkbox" id="veg" style="width:auto"> Vegetarian</label></p>
+<div class="chips"><label class="chip"><input type="checkbox" id="open"> Open now</label><label class="chip"><input type="checkbox" id="dog"> Dogs welcome</label><label class="chip"><input type="checkbox" id="veg"> Vegetarian</label></div>
 <p id="st" class="note">Loading.</p><div id="list"></div>
 <button class="alt" id="more" hidden>Show more</button>
 <button class="alt" id="plan">Ask Hannah to plan a night</button>

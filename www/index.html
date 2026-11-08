@@ -1,18 +1,105 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Hermitage House Chicago</title><link rel="stylesheet" href="app.css"></head>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Hermitage House Chicago</title><link rel="stylesheet" href="app.css">
+<style>
+.hero{height:calc(100vh - 110px);min-height:520px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;text-align:center}
+.hero .wc{font:400 26px var(--display);font-style:italic;color:var(--soft);margin-bottom:26px}
+.hero .mast{transform:scale(1.2);margin:0}
+.hero .seeds{position:absolute;inset:0;z-index:0;pointer-events:none}
+.seed{position:absolute;width:var(--w,26px);opacity:.45;transform:rotate(var(--r,0deg));animation:drift var(--t,11s) ease-in-out infinite alternate}
+.seed[src*="seed-"]{opacity:.62}
+@keyframes drift{from{translate:0 0}to{translate:14px -10px}}
+@media (prefers-reduced-motion:reduce){.seed{animation:none}}
+.seed.s1{left:5%;top:8%;--w:30px;--r:-10deg;--t:12s}.seed.s2{left:70%;top:12%;--w:22px;--r:8deg;--t:10s}.seed.s3{left:88%;top:26%;--w:30px;--r:12deg;--t:13s}
+.seed.s4{left:5%;top:36%;--w:22px;--r:-6deg;--t:9s}.seed.s5{left:84%;top:50%;--w:26px;--r:9deg;--t:14s}.seed.s6{left:90%;top:72%;--w:20px;--r:14deg;--t:11s}
+.seed.s7{left:6%;top:62%;--w:28px;--r:-12deg;--t:12s}.seed.s8{left:14%;top:84%;--w:20px;--r:-4deg;--t:10s}.seed.s9{left:62%;top:70%;--w:18px;--r:-8deg;--t:13s}
+.d-mast{position:absolute;right:4%;bottom:96px;width:110px;opacity:.75;z-index:0;pointer-events:none}
+.hero .wc,.hero .mast{position:relative;z-index:1}.hero .cue{z-index:1}
+.lane{position:absolute;top:0;bottom:0;width:13%;overflow:hidden;pointer-events:none;z-index:0}.lane.l{left:0}.lane.r{right:0}
+.lane img{position:absolute;opacity:0;animation:rise linear infinite}
+@keyframes rise{0%{transform:translate(0,0) rotate(-8deg);opacity:0}12%{opacity:.6}50%{transform:translate(var(--sw,10px),-45vh) rotate(8deg)}88%{opacity:.5}100%{transform:translate(0,-92vh) rotate(-6deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.lane{display:none}}
+.cue{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--soft);text-decoration:none}
+.cue svg{display:block;margin:6px auto 0;width:26px;height:26px;fill:none;stroke:var(--green);stroke-width:2.5;animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(9px)}}
+.map{position:relative;height:290px;border-radius:18px;overflow:hidden;background:#EAE8E1;border:1px solid rgba(0,0,0,.08)}.map svg{width:100%;height:100%}.map .am{position:absolute;left:10px;bottom:6px;font:600 11px sans-serif;color:#555}
+.pin{font:600 11px sans-serif}
+.lnks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.lnks a,.lnk a{text-align:center;padding:12px 6px;border-radius:14px;background:var(--blush);color:var(--ink);text-decoration:none;font-weight:600}
+.lnk{display:flex;gap:10px;margin-top:12px}.lnk a{flex:1;cursor:pointer}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(58,42,32,.1);gap:10px}.row b{text-align:right}
+.rev{background:var(--green);color:#fff;border:0;border-radius:10px;padding:7px 14px;font:600 14px var(--body)}
+.wx{display:flex;gap:8px;overflow:auto}.wx div{flex:1 0 74px;background:#fff;border-radius:14px;padding:10px 4px;text-align:center;font-size:13px}.wx b{display:block;font-size:17px}
+#ev .row{flex-direction:column;align-items:flex-start;gap:0}#ev .row b{text-align:left;font-weight:500;color:var(--soft);font-size:14.5px}
+</style></head>
 <body><main>
-<div class="mast"><img class="wash" src="img/wash.webp" alt=""><div class="h">Hermitage</div><div class="s">House</div><div class="c">Chicago</div><div class="a">Andersonville</div></div>
-<h1 class="welcome" id="wel" hidden></h1>
-<a class="tile tall" href="stay.html"><img src="img/apt1.jpg" alt=""><div class="t"><b>My stay</b><span id="trip">Check-in details, reminders and requests</span></div></a>
-<div class="duo">
-<a class="mini" href="contact.html"><b>Message the host</b><span>Questions, requests, anything</span></a>
-<a class="mini g" href="emergency.html"><b>Emergency</b><span>911, hospitals, animal ERs</span></a>
-</div>
-<a class="tile" id="req" href="#"><img src="img/apt2.jpg" alt=""><div class="t"><b>Planning another stay?</b><span>Send a new request</span></div></a>
+<div class="hero"><span class="seeds" aria-hidden="true"><img class="seed s1" src="img/seed-green.svg" alt=""><img class="seed s2" src="img/seed-blush.svg" alt=""><img class="seed s3" src="img/seed.svg" alt=""><img class="seed s4" src="img/seed-blush.svg" alt=""><img class="seed s5" src="img/seed-green.svg" alt=""><img class="seed s6" src="img/seed-blush.svg" alt=""><img class="seed s7" src="img/seed-green.svg" alt=""><img class="seed s8" src="img/seed.svg" alt=""><img class="seed s9" src="img/seed-blush.svg" alt=""></span><img class="d-mast" src="img/seeds.svg" alt=""><div class="wc" id="wc">Welcome home</div><div class="mast"><img class="wash" src="img/wash.webp" alt=""><div class="h">Hermitage</div><div class="s">House</div><div class="c">Chicago</div><div class="a">Andersonville</div></div>
+<a class="cue" href="#around" id="cue">Scroll for your trip<svg viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></a></div>
+
+<h2 id="around">Getting around</h2>
+<div class="map"><svg viewBox="0 0 340 290"><rect width="340" height="290" fill="#EAE8E1"/><rect x="0" y="215" width="340" height="75" fill="#CFE3EE"/><rect x="190" y="130" width="70" height="60" fill="#D5E6C8"/>
+<g stroke="#fff" stroke-width="7"><line x1="0" y1="120" x2="340" y2="95"/><line x1="0" y1="200" x2="340" y2="190"/><line x1="130" y1="0" x2="150" y2="215"/><line x1="270" y1="0" x2="265" y2="215"/></g><g stroke="#fff" stroke-width="3.5"><line x1="0" y1="60" x2="340" y2="50"/><line x1="60" y1="0" x2="70" y2="215"/><line x1="200" y1="0" x2="205" y2="215"/></g>
+<line x1="0" y1="35" x2="340" y2="30" stroke="#C8102E" stroke-width="5"/><line x1="0" y1="168" x2="340" y2="160" stroke="#6B4A2B" stroke-width="5"/>
+<circle cx="170" cy="112" r="10" fill="#C8102E" stroke="#fff" stroke-width="3"/><text class="pin" x="102" y="136" fill="#222">Hermitage House</text>
+<g class="pin"><circle cx="270" cy="31" r="6" fill="#fff" stroke="#C8102E" stroke-width="3"/><text x="205" y="22" fill="#222">Lawrence · 15 min</text><circle cx="60" cy="168" r="6" fill="#fff" stroke="#6B4A2B" stroke-width="3"/><text x="60" y="186" fill="#222">Damen · 16 min</text><rect x="196" y="76" width="9" height="9" fill="#1B3358"/><text x="208" y="80" fill="#222">Metra · 8 min</text><rect x="228" y="150" width="9" height="9" fill="#2E7D32"/><text x="226" y="178" fill="#222">Mariano's · 8 min</text></g></svg><div class="am">Stand-in picture. The iPhone build shows the real Apple map.</div></div>
+<div class="lnks" id="lnks"></div>
+
+<h2>Your stay</h2>
+<div class="card" id="stay"><p>Loading your stay…</p></div>
+<a class="btn alt" href="stay.html">Check-in list, emergency help and past stays</a>
+
+<h2>Weather during your stay</h2><div class="wx" id="wx"><p>Loading…</p></div><p id="wxn" style="font-size:13px;color:var(--soft)"></p>
+<h2>Events during your stay</h2><div class="card" id="ev"></div>
 </main>
 <script src="app.js"></script>
 <script>
-kv('trip').then(function(v){ if(!v) return; var t=JSON.parse(v);
-  var w=document.getElementById('wel'); w.textContent='Welcome, '+t.first+'!'; w.hidden=false;
-  document.getElementById('trip').textContent=us(t.start)+' to '+us(t.end)+' \u00b7 Apartment '+t.apt; });
-document.getElementById('req').onclick=function(e){e.preventDefault();openSite('/request.html')}</script>
-</body></html>
+var LINKS=[['Red Line','/redline/'],['Brown Line','/brownline/'],['Metra','https://metra.com'],['Bus routes','/bus/']];
+LINKS.forEach(function(l){var a=el('a',l[0]);a.href='#';a.onclick=function(e){e.preventDefault();var u=l[1].indexOf('http')===0?l[1]:'https://www.transitchicago.com'+l[1];if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};document.getElementById('lnks').appendChild(a)});
+
+if(LS.getItem('seedStyle')==='B'){var hero=document.querySelector('.hero');['l','r'].forEach(function(side){var ln=el('div','','lane '+side);for(var i=0;i<4;i++){var im=document.createElement('img');im.src=['img/seed.svg','img/seed-blush.svg','img/seed-green.svg','img/seed.svg'][i];im.alt='';im.style.cssText='bottom:-40px;left:'+(8+(i*21)%50)+'%;width:'+(13+(i*5)%6)+'px;animation-duration:'+(20+i*4+(side==='r'?3:0))+'s;animation-delay:'+(-(i*5+(side==='r'?2:0)))+'s;--sw:'+((i%2?1:-1)*8)+'px';ln.appendChild(im)}hero.appendChild(ln)})}
+document.getElementById('cue').onclick=function(e){e.preventDefault();document.getElementById('around').scrollIntoView({behavior:'smooth'})};
+function D(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function full(s){var d=D(s);return ['January','February','March','April','May','June','July','August','September','October','November','December'][d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()}
+function sheet(title,fill){openSheet(title,fill)}
+function reveal(box,key,label,val){var row=el('div','','row');row.appendChild(el('span',label));var s=el('span');row.appendChild(s);box.appendChild(row);
+  function show(){s.innerHTML='';s.appendChild(el('b',val))}
+  kv(key).then(function(v){if(v==='1')show();else{var b=el('button','Reveal','rev');b.onclick=function(){kvSet(key,'1');show()};s.appendChild(b)}})}
+kv('stay').then(function(v){if(!v)return;var l=JSON.parse(v);var q='?id='+encodeURIComponent(l.id)+'&t='+encodeURIComponent(l.t);
+ api('/api/stay-update'+q).then(function(d){
+  if(!d.ok)return;
+  var first=(d.name||'').split(' ')[0];if(first)document.getElementById('wc').textContent='Welcome home, '+first;
+  api('/api/stay-details'+q).then(function(det){
+   var c=document.getElementById('stay');c.innerHTML='';
+   function row(a,b){var r=el('div','','row');r.appendChild(el('span',a));r.appendChild(el('b',b));c.appendChild(r)}
+   row('Check-in',full(d.start)+', 3:00 PM');row('Check-out',full(d.end)+', 11:00 AM');
+   var open=det&&det.detailsOpen;
+   if(open){reveal(c,'rv_door','Door code',det.doorCode||'');reveal(c,'rv_wifi','Wi-Fi',(det.wifiName||'')+' / '+(det.wifiPassword||''))}
+   else{var o=new Date(D(d.start));o.setDate(o.getDate()-1);row('Door code and Wi-Fi','Open '+full(o.getFullYear()+'-'+(o.getMonth()+1)+'-'+o.getDate())+', 3:00 PM')}
+   row('Contact','Hannah and Vlad');
+   var ln=el('div','','lnk');var a1=el('a','Directions'),a2=el('a','Parking');ln.appendChild(a1);ln.appendChild(a2);c.appendChild(ln);
+   a1.onclick=function(){sheet('Getting here',function(b){
+     b.appendChild(el('h3','From O’Hare (ORD)'));b.appendChild(el('p','Train: Blue Line to Jackson, switch to the Red Line toward Howard, get off at Lawrence. About 1 hour 15 minutes. By car: about 30 to 45 minutes.'));
+     b.appendChild(el('h3','From Midway (MDW)'));b.appendChild(el('p','Train: Orange Line to Roosevelt, switch to the Red Line toward Howard, get off at Lawrence. About 1 hour. By car: about 30 to 45 minutes.'));
+     b.appendChild(el('p','Times are rough and change with traffic. Test text, to be checked before it goes live.','note'));
+     if(det&&det.address){[['O’Hare','O’Hare International Airport'],['Midway','Midway International Airport']].forEach(function(r){var a=el('a','Directions from '+r[0]+' in Apple Maps','btn');a.style.marginTop='8px';a.href='https://maps.apple.com/?saddr='+encodeURIComponent(r[1])+'&daddr='+encodeURIComponent(det.address);a.onclick=function(e){e.preventDefault();var u=this.href;if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};b.appendChild(a)})}})};
+   a2.onclick=function(){sheet('Parking',function(b){
+     b.appendChild(el('p','Your stay includes a spot in our detached garage, whether or not you have a car. It is in the alley directly behind Hermitage, in the alley between Hermitage and Ravenswood.'));
+     if(open&&det.garageCode)reveal(b,'rv_garage','Garage keypad code',det.garageCode);else b.appendChild(el('p','Your garage code opens at 3:00 PM the day before you arrive, with your door code.','note'))})};
+  });
+  loadWeather(d.start,d.end);loadEvents(d.start,d.end);
+ });});
+function loadEvents(s,e){var a=D(s),z=D(e),y=a.getFullYear();
+ var E=[['Restaurant Week','usually late January into early February',[1,20],[2,5]],['Chicago Auto Show','usually mid February',[2,8],[2,17]],['St. Patrick’s Day parades','around March 17',[3,10],[3,18]],['Chicago Marathon','early October',[10,6],[10,14]],['Pride Parade','last Sunday of June',[6,24],[6,30]],['Lollapalooza','around the start of August',[7,28],[8,5]],['Air and Water Show','mid August',[8,14],[8,22]],['Thanksgiving, Christkindlmarket','November into December',[11,15],[12,24]]];
+ var box=document.getElementById('ev'),n=0;
+ E.forEach(function(x){for(var yy=y;yy<=z.getFullYear();yy++){var s0=new Date(yy,x[2][0]-1,x[2][1]),e0=new Date(yy,x[3][0]-1,x[3][1]);if(s0<=z&&e0>=a){var r=el('div','','row');r.appendChild(el('span',x[0]));r.appendChild(el('b',x[1]));box.appendChild(r);n++;break}}});
+ if(!n)box.appendChild(el('p','No big city events usually fall in your dates.'));
+ box.appendChild(el('p','Typical timing, not exact dates. Test list.','note'))}
+function loadWeather(s,e){var a=D(s),z=D(e),now=new Date(),days=(a-now)/864e5,box=document.getElementById('wx'),note=document.getElementById('wxn');
+ var span=Math.round((z-a)/864e5);var fut=days<=10;var A=new Date(a),Z=new Date(z);
+ if(!fut){A.setFullYear(A.getFullYear()-1);Z.setFullYear(Z.getFullYear()-1)}
+ function iso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+ if(fut&&(Z-now)/864e5>15)Z=new Date(now.getTime()+15*864e5);
+ var base=fut?'https://api.open-meteo.com/v1/forecast':'https://archive-api.open-meteo.com/v1/archive';
+ var url=base+'?latitude=41.97&longitude=-87.67&daily=temperature_2m_max,weathercode&temperature_unit=fahrenheit&timezone=America%2FChicago&start_date='+iso(fut?(A<now?now:A):A)+'&end_date='+iso(Z);
+ fetch(url).then(function(r){return r.json()}).then(function(j){var t=j.daily.time,m=j.daily.temperature_2m_max,c=j.daily.weathercode;box.innerHTML='';var step=Math.max(1,Math.ceil(t.length/6));
+  function nm(k){return k===0?'Clear':k<4?'Cloudy':k<50?'Fog':k<70?'Rain':k<80?'Snow':k<90?'Showers':'Storms'}
+  for(var i=0;i<t.length;i+=step){var d=el('div'),dt=t[i].split('-');d.appendChild(el('span',MO[+dt[1]-1]+' '+(+dt[2])));d.appendChild(el('b',Math.round(m[i])+'°'));d.appendChild(el('span',nm(c[i])));box.appendChild(d)}
+  note.textContent=fut?'Forecast for your dates.':'Your stay is further out than a forecast reaches, so this is what the same dates looked like last year.'}).catch(function(){box.innerHTML='';note.textContent='Weather could not load right now.'})}
+</script></body></html>

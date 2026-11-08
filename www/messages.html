@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Messages</title><link rel="stylesheet" href="app.css"></head>
+<body><main><h1>Messages</h1>
+<div id="chat"></div>
+</main><script src="app.js"></script>
+<script>
+
+var chat=document.getElementById('chat');
+if(!DEMO){
+  chat.appendChild(el('p','Send your hosts a message. For an emergency, call 911 instead.'));
+  var a=el('a','Message the hosts','btn');a.href='contact.html';chat.appendChild(a);
+}else{
+  chat.appendChild(el('p','Messages here go to your hosts, Hannah and Vlad, and are kept with your stay. Please don\u2019t send card or bank details here. In an emergency, call 911.','note'));
+  var M=[['Hannah','Welcome! Your place is ready from 3pm on Jan 10. Door code and Wi-Fi show in My stay the day before.','Jan 8, 3:02 PM','Read by you'],
+         ['me','Thank you! We land around 2. Is early drop-off for bags okay?','Jan 8, 3:20 PM','Read by Hannah, Vlad'],
+         ['Vlad','Yes, bags are fine. Text or message when you are close.','Jan 8, 4:05 PM','Read by you']];
+  var box=el('div');chat.appendChild(box);
+  function add(m){var b=el('div','','bub'+(m[0]==='me'?' me':''));if(m[0]!=='me')b.appendChild(el('b',m[0]));b.appendChild(el('div',m[1]));b.appendChild(el('small',m[2]+' \u00b7 '+m[3]));box.appendChild(b)}
+  M.forEach(add);
+  chat.appendChild(el('textarea','','')).id='t';var t=document.getElementById('t');t.rows=3;t.placeholder='Write a message';t.style.marginTop='12px';
+  var s=el('button','Send');s.style.marginTop='8px';chat.appendChild(s);
+  s.onclick=function(){if(!t.value.trim())return;add(['me',t.value.trim(),stamp(),'Sent, not read yet']);t.value=''};
+  chat.appendChild(el('p','Sample conversation. Everyone in the chat sees who has read each message, and when it was sent.','note'));
+}
+
+</script></body></html>

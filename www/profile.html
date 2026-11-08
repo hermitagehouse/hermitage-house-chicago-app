@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Profile</title><link rel="stylesheet" href="app.css"></head>
+<body><main><h1>Profile</h1><div id="box"></div></main><script src="app.js"></script>
+<script>
+
+var box=document.getElementById('box');
+kv('profile').then(function(v){
+  if(!v){box.appendChild(el('p','Sign in to see and edit your details.'));var a=el('a','Sign in','btn');a.href='signin.html';box.appendChild(a);return}
+  var p=JSON.parse(v);
+  function f(id,label,val,type){var l=el('label',label);l.htmlFor=id;box.appendChild(l);var i=document.createElement('input');i.id=id;i.value=val||'';if(type)i.type=type;box.appendChild(i);return i}
+  var n=f('n','Your name',p.name),em=f('em','Email',p.email,'email'),ph=f('ph','Phone',p.phone,'tel'),o=f('o','Other guests with you',p.others),pt=f('pt','Pets (name, type)',p.pets);
+  box.appendChild(el('h2','Notifications'));
+  function cb(id,label,on){var l=el('label','','');l.style.cssText='display:flex;gap:10px;align-items:center;margin:8px 0';var c=document.createElement('input');c.type='checkbox';c.id=id;c.checked=!!on;c.style.width='auto';l.appendChild(c);l.appendChild(document.createTextNode(label));box.appendChild(l);return c}
+  var ce=cb('ne','Email me when I have a new message',p.nEmail),cp=cb('np','Phone alert when I have a new message',p.nPush);
+  box.appendChild(el('p','We never put message text in an email. Texts are not offered yet.','note'));
+  var s=el('button','Save');var ok=el('p','','ok');ok.style.marginTop='10px';box.appendChild(s);box.appendChild(ok);
+  s.onclick=function(){p.name=n.value;p.email=em.value;p.phone=ph.value;p.others=o.value;p.pets=pt.value;p.nEmail=ce.checked;p.nPush=cp.checked;kvSet('profile',JSON.stringify(p)).then(function(){ok.textContent='Saved on this phone. (Test version: not sent to Hannah yet.)'})};
+  if(DEMO){box.appendChild(el('h2','Test controls'));var lk=cb('lk','Pretend door code and Wi-Fi are not open yet',LS.getItem('demoLocked')==='1');lk.onchange=function(){LS.setItem('demoLocked',lk.checked?'1':'0');['rv_door','rv_wifi','rv_garage'].forEach(kvDel)}}
+  if(DEMO){var sb=cb('sb','Dandelion option B: little seeds also float up the side margins',LS.getItem('seedStyle')==='B');sb.onchange=function(){LS.setItem('seedStyle',sb.checked?'B':'A')}}
+  box.appendChild(el('h2','Your account'));
+  var so=el('button','Sign out','alt');so.style.marginTop='6px';so.onclick=function(){leaveDemo();location.href='index.html'};box.appendChild(so);
+  var d=el('a','Delete my account');d.href='#';d.style.cssText='display:block;margin-top:16px;color:#A33';
+  d.onclick=function(ev){ev.preventDefault();if(confirm('Delete your account? Your stay records and messages are kept by Hermitage House as booking records. This test only signs you out.')){leaveDemo();location.href='index.html'}};box.appendChild(d);
+});
+
+</script></body></html>

@@ -1,0 +1,67 @@
+name: iPhone build for TestFlight (signed)
+# Run by hand only: Actions > this workflow > Run workflow.
+# Uses the four repository secrets Hannah added. Nothing secret is printed or saved.
+on:
+  workflow_dispatch:
+jobs:
+  testflight:
+    runs-on: macos-latest
+    env:
+      TEAM: ${{ secrets.APPLE_TEAM_ID }}
+      KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      ISSUER: ${{ secrets.APPSTORE_ISSUER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx cap sync ios
+      - name: Check the four secrets exist (names only)
+        run: |
+          for v in TEAM KEY_ID ISSUER; do
+            if [ -z "${!v}" ]; then echo "Missing secret for $v"; exit 1; fi
+          done
+          if [ -z "${{ secrets.APPSTORE_API_KEY_P8 }}" ]; then echo "Missing APPSTORE_API_KEY_P8"; exit 1; fi
+      - name: Put the key file in a temporary place
+        env:
+          P8: ${{ secrets.APPSTORE_API_KEY_P8 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          printf '%s\n' "$P8" > "$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8"
+          chmod 600 "$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8"
+      - name: Archive (Apple makes the certificate and profile through the key)
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
+            -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8" \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER" \
+            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            archive
+      - name: Upload to TestFlight
+        run: |
+          cat > "$RUNNER_TEMP/export.plist" <<PL
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${TEAM}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          PL
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/export.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8" \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER"
+      - name: Remove the key file
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"

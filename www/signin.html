@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Sign in</title><link rel="stylesheet" href="app.css">
+<style>.si{position:relative;padding:8px 0 30px}.si .mast{transform:scale(.95);margin:6px 0 4px}.si .wc{font:italic 400 24px var(--display);color:var(--soft);text-align:center;margin:0 0 10px}.si form{position:relative;z-index:1}.si .seeds{position:absolute;inset:0;pointer-events:none;z-index:0}.si .card{position:relative;z-index:1}</style></head>
+<body><main><div class="si">
+<span class="seeds" aria-hidden="true"><img class="seed s1" src="img/seed-green.svg" alt=""><img class="seed s3" src="img/seed.svg" alt=""><img class="seed s5" src="img/seed-blush.svg" alt=""><img class="seed s7" src="img/seed-green.svg" alt=""><img class="seed s6" src="img/seed-blush.svg" alt=""></span>
+<div class="mast" style="position:relative;z-index:1"><img class="wash" src="img/wash.webp" alt=""><div class="h">Hermitage</div><div class="s">House</div><div class="c">Chicago</div><div class="a">Andersonville</div></div>
+<p class="wc">Welcome home</p>
+<div class="card"><form id="f" novalidate><label for="e">Email you booked with</label><input id="e" type="email" autocomplete="email" inputmode="email"><label for="p">Password</label><input id="p" type="password" autocomplete="current-password">
+<p id="out" class="err" role="alert" style="margin-top:10px"></p>
+<div class="btnrow"><button type="submit" id="go">Sign in</button><button type="button" class="alt" id="mk">Create my password</button></div></form></div>
+<p class="note" style="text-align:center;margin-top:16px">Accounts are for guests who have booked with us.</p>
+<div class="card" style="margin-top:18px"><h3>Test version</h3><p class="note">Accounts are not connected yet. Any email and password signs you in to a sample stay so you can click around.</p></div>
+</div></main><script src="app.js"></script>
+<script>
+var out=document.getElementById('out');
+document.getElementById('f').onsubmit=function(ev){ev.preventDefault();
+  var e=document.getElementById('e').value.trim();out.className='err';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)||!document.getElementById('p').value){out.textContent='Enter the email you booked with and your password.';return}
+  var b=document.getElementById('go');b.disabled=true;
+  LS.setItem('demo','1');
+  kvSet('stay',JSON.stringify({id:'demo',t:'demo'})).then(function(){kvSet('profile',JSON.stringify({email:e,name:'Sample Guest',phone:'',others:'',pets:'',nEmail:true,nPush:true})).then(function(){location.href='index.html'})});
+};
+document.getElementById('mk').onclick=function(){out.className='ok';out.textContent='In the finished app we email a link to the address you booked with, and you choose your password there. Not connected in this test.'};
+</script></body></html>

@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Getting around</title><link rel="stylesheet" href="app.css"></head>
+<body><main><h1>Getting around</h1><div id="box"></div></main><script src="app.js"></script>
+<script>
+
+var box=document.getElementById('box');
+signedIn().then(function(ok){
+  if(!ok){box.appendChild(el('p','Getting-around details are shown once you have a stay booked. Sign in to see them.'));var a=el('a','Sign in','btn');a.href='signin.html';box.appendChild(a);return}
+  box.appendChild(el('p','Walking or driving times from the house. Tap one for directions.'));
+  var L=[['Trains and Metra',[['Metra UP-N, Ravenswood station','8 min walk','Ravenswood Metra Station Chicago'],['Red Line, Lawrence','15 min walk','Lawrence Red Line station Chicago'],['Brown Line, Damen','16 min walk','Damen Brown Line station Chicago']]],
+         ['Groceries and food',[['Mariano\u2019s','8 min walk','Mariano\u2019s Chicago Clark St'],['Clark St restaurants','2 min walk','Clark Street Chicago Andersonville']]],
+         ['Nearby',[['Wrigley Field','10 min by bike','Wrigley Field Chicago'],['Montrose Beach and MonDOG Beach','10 to 12 min drive','Montrose Beach Chicago']]]];
+  L.forEach(function(g){box.appendChild(el('h2',g[0]));g[1].forEach(function(r){var a=el('a','','card');a.style.display='block';a.href='https://maps.apple.com/?daddr='+encodeURIComponent(r[2])+'&dirflg=w';a.appendChild(el('b',r[0]));a.appendChild(el('div',r[1]));a.onclick=function(ev){ev.preventDefault();var u='https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+encodeURIComponent(r[2]);if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};box.appendChild(a)})});
+  box.appendChild(el('p','Test version: times are the ones on our website. A drawn map comes later.','note'));
+});
+
+</script></body></html>

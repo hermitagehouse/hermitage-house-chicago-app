@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>ShallWe</title><link rel="stylesheet" href="app.css"></head>
-<body class="sw"><main><h1>ShallWe</h1>
+<body class="sw"><main><div class="swmark"><b>ShallWe<sup>™</sup></b><span>★ Curated by Hannah ★</span></div>
 <input id="q" type="search" placeholder="Search places" aria-label="Search places">
 <div class="chips"><label class="chip"><input type="checkbox" id="open"> Open now</label><label class="chip"><input type="checkbox" id="dog"> Dogs welcome</label><label class="chip"><input type="checkbox" id="veg"> Vegetarian</label></div>
 <p id="st" class="note">Loading.</p><div id="list"></div>
@@ -47,10 +47,10 @@ moreB.onclick=function(){shown+=40;draw()};
 ['q','open','dog','veg'].forEach(function(i){document.getElementById(i).oninput=function(){shown=40;draw()}});
 function pick(d){return d&&Array.isArray(d.places)?d.places:[]}
 // the list is large, so the saved copy lives in the phone's page storage rather than preferences
-kv('fav').then(function(v){fav=v?JSON.parse(v):{}; try{cache=localStorage.getItem('guide')}catch(e){}
+kv('fav').then(function(v){fav=v?JSON.parse(v):{}; try{cache=LS.getItem('guide')}catch(e){}
   if(cache){ALL=JSON.parse(cache);draw()}
   api('/api/guide').then(function(d){var items=pick(d).filter(function(p){return p.name});
-    if(items.length){ALL=items;try{localStorage.setItem('guide',JSON.stringify(items))}catch(e){}draw()}
+    if(items.length){ALL=items;try{LS.setItem('guide',JSON.stringify(items))}catch(e){}draw()}
     else if(!cache)st.textContent='Could not load places. Check your connection.'});
 });
 </script></body></html>

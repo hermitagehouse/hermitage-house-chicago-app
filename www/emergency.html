@@ -12,7 +12,7 @@
 
 <h1>Emergency</h1>
 <a class="big" href="tel:911">Call 911</a>
-<div class="addr" id="addr">Your address appears here once you open your private stay link.</div>
+<div class="addr" id="addr">Your address appears here once you sign in and have a stay booked with us.</div>
 <p>In an emergency, call 911. Give them the address above.</p>
 <p id="fire">Fire: get everyone out first, then call 911.</p>
 <p>If a smoke or carbon monoxide alarm sounds, get everyone out and call 911.</p>
@@ -37,11 +37,18 @@
 <h2>Poison help</h2>
 <div class="card"><h3>Poison Control (people)</h3><p>24 hours, free and confidential.</p><p><a href="tel:+18002221222">1-800-222-1222</a></p></div>
 
-<h2>Animal emergency</h2>
+<h2>Daytime vet for sick or hurt pets</h2>
+<div class="card"><h3>GoodVets Uptown</h3><p>Hannah's vet for sick or hurt pets during the day. Call first.</p><p>4407 N Clarendon Ave, Chicago, IL 60640</p><p>Mon to Fri 8am to 8pm, Sat and Sun 8am to 6pm.</p>
+<div class="btnrow"><a class="btn" href="tel:+13122198686">Call (312) 219-8686</a><a class="btn alt" href="https://goodvets.com/locations/chicago/uptown" target="_blank" rel="noopener">Clinic page</a></div></div>
+<div class="card"><h3>GoodVets Andersonville</h3><p>5964 N Ridge Ave, Suite 102, Chicago, IL 60660</p><p>Mon and Tue 8am to 8pm, Wed to Sun 8am to 6pm.</p>
+<div class="btnrow"><a class="btn" href="tel:+13126809064">Call (312) 680-9064</a><a class="btn alt" href="https://goodvets.com/locations/chicago/andersonville" target="_blank" rel="noopener">Clinic page</a></div></div>
+<p class="note">No opening? There are other GoodVets clinics around the city: <a href="https://goodvets.com/locations/chicago" target="_blank" rel="noopener">see all locations</a>. GoodVets is not an emergency hospital. For a late-night or serious emergency, use MedVet Chicago or VEG Lincoln Park below.</p>
+<h2>Animal emergency, open 24 hours</h2>
 <div class="card"><h3>MedVet Chicago</h3><p>Open 24/7. No appointment needed in an emergency.</p><p>3305 N California Ave, Chicago, IL 60618</p>
 <p><a href="tel:+17732817110">773-281-7110</a> · <a href="https://www.google.com/maps/search/?api=1&query=3305+N+California+Ave+Chicago+IL+60618">Map</a></p></div>
 <div class="card"><h3>VEG Lincoln Park</h3><p>Open 24 hours. Walk in any time; calling first is recommended.</p><p>755 W North Ave, Chicago, IL 60610</p>
 <p><a href="tel:+13127575444">312-757-5444</a> · <a href="https://www.google.com/maps/search/?api=1&query=755+W+North+Ave+Chicago+IL+60610">Map</a></p></div>
+<h2>Animal poison lines</h2>
 <div class="card"><h3>Animal poison lines</h3>
 <p>ASPCA Animal Poison Control: <a href="tel:+18884264435">(888) 426-4435</a>. A consultation fee may apply.</p>
 <p>Pet Poison Helpline: <a href="tel:+18557647661">(855) 764-7661</a>. One-time $99 fee as of Nov 7, 2026.</p></div>
@@ -51,7 +58,7 @@
 </main>
 <script src="app.js"></script>
 <script>
-kv("stay").then(function(st){if(st)document.getElementById("addr").textContent="Your address shows here from the day before you arrive through checkout day."});
+kv("stay").then(function(st){if(st)document.getElementById("addr").textContent="Your address shows here while you have a stay booked with us."});
 kv("safety").then(function(v){if(!v)return;var s=JSON.parse(v);if(s.address){var a=document.getElementById("addr");a.textContent="";a.appendChild(el("strong",s.address))}if(s.extinguisher)document.getElementById("fire").textContent+=" The fire extinguisher is "+s.extinguisher+"."})
 </script>
 </body>

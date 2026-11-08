@@ -23,13 +23,29 @@ jobs:
             if [ -z "${!v}" ]; then echo "Missing secret for $v"; exit 1; fi
           done
           if [ -z "${{ secrets.APPSTORE_API_KEY_P8 }}" ]; then echo "Missing APPSTORE_API_KEY_P8"; exit 1; fi
-      - name: Put the key file in a temporary place
+      - name: Put the key file in a temporary place (rebuilt as clean PEM; prints sizes only)
         env:
           P8: ${{ secrets.APPSTORE_API_KEY_P8 }}
         run: |
           mkdir -p "$RUNNER_TEMP/keys"
-          printf '%s\n' "$P8" > "$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8"
-          chmod 600 "$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8"
+          OUT="$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8"
+          python3 - "$OUT" <<'PY'
+          import os, re, sys, base64, textwrap
+          raw = os.environ["P8"]
+          had_header = "BEGIN PRIVATE KEY" in raw
+          body = re.sub(r"-----[A-Z ]+-----", "", raw)
+          body = re.sub(r"\s+", "", body)
+          print("had header:", had_header, "| body characters:", len(body))
+          try:
+              der = base64.b64decode(body, validate=True)
+          except Exception as e:
+              print("The secret is not a valid key text (base64 failed). Re-paste the whole .p8 file text.")
+              sys.exit(1)
+          print("decoded bytes:", len(der), "(an Apple key is about 138)")
+          pem = "-----BEGIN PRIVATE KEY-----\n" + "\n".join(textwrap.wrap(body, 64)) + "\n-----END PRIVATE KEY-----\n"
+          open(sys.argv[1], "w").write(pem)
+          os.chmod(sys.argv[1], 0o600)
+          PY
       - name: Archive (Apple makes the certificate and profile through the key)
         run: |
           xcodebuild -workspace ios/App/App.xcworkspace -scheme App \

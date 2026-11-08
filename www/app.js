@@ -24,7 +24,7 @@ function stamp() { return new Date().toLocaleString('en-US', { dateStyle: 'mediu
     msg: '<path d="M4 5h16v11H9l-5 4z"/>',
     sos: '<path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/>'
   };
-  var T = [['index.html', 'Home', 'home'], ['stay.html', 'My stay', 'stay'], ['shallwe.html', 'Places', 'places'], ['contact.html', 'Message', 'msg'], ['emergency.html', 'Emergency', 'sos']];
+  var T = [['index.html', 'Home', 'home'], ['stay.html', 'My stay', 'stay'], ['shallwe.html', 'ShallWe', 'places'], ['contact.html', 'Message', 'msg'], ['emergency.html', 'Emergency', 'sos']];
   var here = (location.pathname.split('/').pop() || 'index.html');
   var nav = document.createElement('nav'); nav.className = 'tabs';
   T.forEach(function (t) {

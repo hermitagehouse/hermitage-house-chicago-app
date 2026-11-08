@@ -23,6 +23,11 @@ jobs:
             if [ -z "${!v}" ]; then echo "Missing secret for $v"; exit 1; fi
           done
           if [ -z "${{ secrets.APPSTORE_API_KEY_P8 }}" ]; then echo "Missing APPSTORE_API_KEY_P8"; exit 1; fi
+      - name: Check the shape of the IDs (lengths and format only, never the values)
+        run: |
+          echo "Key ID length: ${#KEY_ID} (should be 10); letters and numbers only: $( [[ "$KEY_ID" =~ ^[A-Z0-9]{10}$ ]] && echo yes || echo NO )"
+          echo "Issuer ID length: ${#ISSUER} (should be 36); looks like an ID: $( [[ "$ISSUER" =~ ^[0-9a-fA-F-]{36}$ ]] && echo yes || echo NO )"
+          echo "Team ID length: ${#TEAM} (should be 10)"
       - name: Put the key file in a temporary place (rebuilt as clean PEM; prints sizes only)
         env:
           P8: ${{ secrets.APPSTORE_API_KEY_P8 }}

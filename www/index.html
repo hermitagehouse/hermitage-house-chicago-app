@@ -1,8 +1,8 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Hermitage House Chicago</title><link rel="stylesheet" href="app.css"></head>
 <body><main>
 <div class="mast"><img class="wash" src="img/wash.webp" alt=""><div class="h">Hermitage</div><div class="s">House</div><div class="c">Chicago</div><div class="a">Andersonville</div></div>
-<p class="hello">A quiet little escape from the busy city, and a few things to make your stay easier.</p>
-<a class="tile tall" href="stay.html"><img src="img/apt1.jpg" alt=""><div class="t"><b>My stay</b><span>Check-in details, reminders and requests</span></div></a>
+<h1 class="welcome" id="wel" hidden></h1>
+<a class="tile tall" href="stay.html"><img src="img/apt1.jpg" alt=""><div class="t"><b>My stay</b><span id="trip">Check-in details, reminders and requests</span></div></a>
 <div class="duo">
 <a class="mini" href="contact.html"><b>Message the host</b><span>Questions, requests, anything</span></a>
 <a class="mini g" href="emergency.html"><b>Emergency</b><span>911, hospitals, animal ERs</span></a>
@@ -10,5 +10,9 @@
 <a class="tile" id="req" href="#"><img src="img/apt2.jpg" alt=""><div class="t"><b>Planning another stay?</b><span>Send a new request</span></div></a>
 </main>
 <script src="app.js"></script>
-<script>document.getElementById('req').onclick=function(e){e.preventDefault();openSite('/request.html')}</script>
+<script>
+kv('trip').then(function(v){ if(!v) return; var t=JSON.parse(v);
+  var w=document.getElementById('wel'); w.textContent='Welcome, '+t.first+'!'; w.hidden=false;
+  document.getElementById('trip').textContent=us(t.start)+' to '+us(t.end)+' \u00b7 Apartment '+t.apt; });
+document.getElementById('req').onclick=function(e){e.preventDefault();openSite('/request.html')}</script>
 </body></html>

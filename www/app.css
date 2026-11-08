@@ -75,3 +75,5 @@ body.sw .btn.alt,body.sw button.alt{background:transparent;color:var(--sw-navy);
 body.sw a{color:var(--sw-navy)}
 body.sw input,body.sw textarea{background:#FBF7EC}
 [hidden]{display:none!important}
+
+.welcome{font:400 30px/1.15 var(--display);text-align:center;margin:4px 0 18px}

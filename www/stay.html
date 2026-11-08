@@ -8,7 +8,7 @@ function clear() { box.textContent = ''; }
 function parseLink(txt) { try { var u = new URL(txt.trim()); var id = u.searchParams.get('id'), t = u.searchParams.get('t'); return id && t ? { id: id, t: t } : null; } catch (e) { return null; } }
 function entry(msg) {
   clear();
-  box.appendChild(el('p', 'Paste the private stay link from your email. It stays on this phone.'));
+  box.appendChild(el('h2', 'Find your stay')); box.appendChild(el('p', 'Open the private stay link from your confirmation email, or paste it here. It stays on this phone, so you only do this once.'));
   var i = el('input'); i.type = 'url'; i.placeholder = 'Paste your stay link'; box.appendChild(i);
   var b = el('button', 'Open my stay'); b.style.marginTop = '12px'; box.appendChild(b);
   var m = el('p', msg || '', 'err'); box.appendChild(m);
@@ -124,7 +124,7 @@ function problem() {
   wrap.appendChild(b); wrap.appendChild(form); box.appendChild(wrap);
 }
 function show(l, d) {
-  S = l; clear();
+  S = l; clear(); kvSet('trip', JSON.stringify({ first: String(d.name || '').split(' ')[0], apt: d.apt, start: d.start, end: d.end }));
   box.appendChild(el('p', 'Hello, ' + d.name + '.', 'note'));
   var c = el('div', '', 'card'); c.appendChild(el('h3', 'Apartment ' + d.apt)); c.appendChild(el('p', us(d.start) + ' to ' + us(d.end))); c.appendChild(el('p', d.guests + (d.guests == 1 ? ' guest' : ' guests') + (d.pets ? ', pets' : '') + (d.garage ? ', garage' : ''))); box.appendChild(c);
   details(l);
@@ -138,7 +138,7 @@ function show(l, d) {
   var pl = el('a', 'Read the full cancellation policy'); pl.href = '#'; pl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; box.appendChild(pl);
   box.appendChild(el('h2', 'Something wrong?')); problem();
   var f = el('button', 'Forget this stay on this phone', 'alt'); f.style.marginTop = '24px';
-  f.onclick = function () { kvDel('stay'); kvDel('checks'); kvDel('safety'); if (P.LocalNotifications) P.LocalNotifications.cancel({ notifications: [{ id: 101 }, { id: 102 }] }); S = null; entry('This stay has been removed from this phone.'); };
+  f.onclick = function () { kvDel('stay'); kvDel('checks'); kvDel('safety'); kvDel('trip'); if (P.LocalNotifications) P.LocalNotifications.cancel({ notifications: [{ id: 101 }, { id: 102 }] }); S = null; entry('This stay has been removed from this phone.'); };
   box.appendChild(f);
 }
 kv('stay').then(function (v) {

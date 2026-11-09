@@ -131,3 +131,5 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(-
 .card p.kv:last-of-type{border-bottom:0}.card p.kv strong{flex:0 0 34%;font-size:13px;font-weight:600;color:var(--soft);letter-spacing:.04em}.card p.kv span{flex:1;text-align:right;font-weight:500}
 .card label.ck{display:flex;align-items:center;gap:12px;font-size:16px;font-weight:400;color:var(--ink);letter-spacing:0;margin:0;padding:10px 0;border-bottom:1px solid rgba(58,42,32,.08)}
 .ok:empty,.err:empty{display:none}
+
+.tabs a{position:relative}.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);min-width:17px;height:17px;border-radius:9px;background:#A33;color:#fff;font:700 11px/17px sans-serif;text-align:center;font-style:normal;padding:0 4px}

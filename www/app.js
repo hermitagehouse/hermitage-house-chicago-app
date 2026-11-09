@@ -111,6 +111,9 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
     a.innerHTML = '<svg viewBox="0 0 24 24">' + I[t[2]] + '</svg>' + t[1]; nav.appendChild(a);
   });
   document.body.appendChild(nav);
+  kv('token').then(function (t) { if (!t || DEMO) return; acctCall('/api/account/me').then(function (m) {
+    var n = 0; (m.stays || []).forEach(function (x) { n += (+x.unread || 0); });
+    if (n > 0) { var a = nav.querySelectorAll('a')[2]; if (a) { var b = document.createElement('i'); b.className = 'badge'; b.textContent = n > 9 ? '9+' : n; a.appendChild(b); } } }); });
 })();
 
 

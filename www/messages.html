@@ -5,9 +5,37 @@
 <script>
 
 var chat=document.getElementById('chat');
-if(!DEMO){
-  chat.appendChild(el('p','Send your hosts a message. For an emergency, call 911 instead.'));
-  var a=el('a','Message the hosts','btn');a.href='contact.html';chat.appendChild(a);
+function tm(x){var d=new Date(x);if(isNaN(d))return String(x||'');return d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+function tmShort(x){var d=new Date(x);if(isNaN(d))return String(x||'');return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(' ','').toLowerCase()}
+function realChat(){
+  var stays=[],cur=null,timer=null;
+  var top=el('div'),box=el('div'),form=el('div');chat.appendChild(top);chat.appendChild(box);chat.appendChild(form);
+  var note=el('p',"Messages here go to your hosts, Hannah and Vlad, and are kept with your stay. Everyone in this conversation can see when a message was sent and when it was read. Please don\u2019t send card or bank details here. In an emergency, call 911.",'note');
+  function paint(d){
+    box.innerHTML='';form.innerHTML='';
+    if(d.archived){box.appendChild(el('p','This stay was cancelled. This conversation is saved with the stay\u2019s records.','note'))}
+    (d.items||[]).forEach(function(m){var mine=m.from==='guest';var b=el('div','','bub'+(mine?' me':''));if(!mine)b.appendChild(el('b',m.who||'Your host'));b.appendChild(el('div',m.text));
+      var line=tm(m.at);
+      if(mine){var r=Object.keys(m.reads||{}).filter(function(k){return k!=='guest'}).map(function(k){return k+', '+tmShort(m.reads[k])});line+=' \u00b7 '+(r.length?'Read by '+r.join(' and '):'Sent, not read yet')}
+      b.appendChild(el('small',line));box.appendChild(b)});
+    if(!(d.items||[]).length)box.appendChild(el('p','No messages yet. Say hello to your hosts below.'));
+    if(d.canSend===false){form.appendChild(el('p',d.archived?'To reach your hosts, start a new message in Messages.':(d.message||''),'note'))}
+    else{var t=el('textarea');t.rows=3;t.maxLength=2000;t.placeholder='Write a message';t.style.marginTop='12px';form.appendChild(t);
+      var s=el('button','Send');s.style.marginTop='8px';var er=el('p','','err');form.appendChild(s);form.appendChild(er);
+      s.onclick=function(){var v=t.value.trim();if(!v)return;s.disabled=true;er.textContent='';
+        acctCall('/api/account/messages',{id:cur,text:v}).then(function(r){s.disabled=false;if(r.ok===false){er.textContent=r.message||'Could not send. Try again.';if(r.items)paint(r);return}t.value='';paint(r)})}}
+    form.appendChild(note.cloneNode(true));
+  }
+  function load(){if(!cur)return;acctCall('/api/account/messages?id='+encodeURIComponent(cur)).then(function(d){if(d.signedOut)return;if(d.ok===false){box.innerHTML='';box.appendChild(el('p',d.message||'Could not load messages. Try again.','err'));return}
+    var typing=document.querySelector('#chat textarea');var keep=typing?typing.value:'';paint(d);var t2=document.querySelector('#chat textarea');if(t2&&keep)t2.value=keep})}
+  acctCall('/api/account/me').then(function(m){
+    if(!m.me){box.appendChild(el('p',m.message||'Could not load your stays. Try again.','err'));return}
+    stays=m.stays||[];kv('stay').then(function(v){cur=v?JSON.parse(v).id:(stays[0]&&stays[0].id);
+      if(stays.length>1){var l=el('label','Stay');l.htmlFor='sp';top.appendChild(l);var sel=document.createElement('select');sel.id='sp';
+        stays.forEach(function(x){var o=document.createElement('option');o.value=x.id;o.textContent=(x.start?us(x.start):'')+' to '+(x.end?us(x.end):'')+(x.unread?' ('+x.unread+' new)':'');sel.appendChild(o)});sel.value=cur;sel.onchange=function(){cur=sel.value;load()};top.appendChild(sel)}
+      load();timer=setInterval(function(){if(!document.hidden)load()},20000)})});
+}
+if(!DEMO){realChat();
 }else{
   chat.appendChild(el('p','Messages here go to your hosts, Hannah and Vlad, and are kept with your stay. Please don\u2019t send card or bank details here. In an emergency, call 911.','note'));
   var M=[['Hannah','Welcome! Your place is ready from 3pm on Jan 10. Door code and Wi-Fi show in My stay the day before.','Jan 8, 3:02 PM','Read by you'],

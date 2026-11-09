@@ -104,7 +104,13 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
   var here = (location.pathname.split('/').pop() || 'index.html'); here = alias[here] || here;
   var page = location.pathname.split('/').pop() || 'index.html';
   if (page === 'signin.html' || page === 'offline.html') return;
-  kv('stay').then(function (v) { if (!v) location.replace('signin.html'); });
+  kv('stay').then(function (v) {
+    var visitor = !v && LS.getItem('visitor') === '1';
+    if (!v && !(visitor && (page === 'availability.html' || page === 'contact.html' || page === 'profile.html'))) { location.replace('signin.html'); return; }
+    if (visitor) { T = [['availability.html', 'Availability', 'cal'], ['contact.html', 'Message us', 'msg'], ['profile.html', 'Profile', 'me']]; here = page; }
+    buildNav(v);
+  });
+  function buildNav(hasStay) {
   var nav = document.createElement('nav'); nav.className = 'tabs';
   T.forEach(function (t) {
     var a = document.createElement('a'); a.href = t[0];
@@ -112,9 +118,11 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
     a.innerHTML = '<svg viewBox="0 0 24 24">' + I[t[2]] + '</svg>' + t[1]; nav.appendChild(a);
   });
   document.body.appendChild(nav);
+  if (!hasStay) return;
   kv('token').then(function (t) { if (!t || DEMO) return; acctCall('/api/account/me').then(function (m) {
     var n = 0; (m.stays || []).forEach(function (x) { n += (+x.unread || 0); });
     if (n > 0) { var a = nav.querySelectorAll('a')[2]; if (a) { var b = document.createElement('i'); b.className = 'badge'; b.textContent = n > 9 ? '9+' : n; a.appendChild(b); } } }); });
+  }
 })();
 
 
@@ -169,3 +177,7 @@ function openSheet(title, fill) {
 if(!document.getElementById('mastdefs')){var d=document.createElement('div');d.id='mastdefs';d.setAttribute('aria-hidden','true');d.style.cssText='position:absolute;width:0;height:0;overflow:hidden';d.innerHTML='<svg width="0" height="0"><defs><filter id="tx" x="-10%" y="-20%" width="120%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="8" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.03 0.5" numOctaves="2" seed="3" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.8 0 0 0 2.0" result="ba"/><feComposite in="d" in2="ba" operator="in"/></filter><filter id="brush" x="-10%" y="-60%" width="120%" height="220%"><feTurbulence type="fractalNoise" baseFrequency="0.011 0.6" numOctaves="2" seed="11" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" result="d"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -3.4 0 0 0 2.5" result="gaps"/><feComposite in="d" in2="gaps" operator="in"/></filter></defs></svg>';document.body.appendChild(d)}
 m.forEach(function(e){if(e.getAttribute('data-built'))return;e.setAttribute('data-built','1');e.innerHTML='<span class="painted" aria-label="Hermitage House Chicago"><img class="wash" src="img/wash-home.webp" alt=""><span class="h" aria-hidden="true">Hermitage</span><svg class="house" viewBox="0 0 420 150" aria-hidden="true"><text x="210" y="112" text-anchor="middle" font-family="Allura, cursive" font-size="132" fill="#3A2A20" stroke="#3A2A20" stroke-width="2.2" opacity=".88" filter="url(#tx)">House</text></svg><span class="c" aria-hidden="true">Chicago</span></span>'})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go()})();
+
+// Visitor (not booked yet): details kept on this phone only, used to fill the request and message forms
+function vGet(){return kv('vprofile').then(function(v){try{return v?JSON.parse(v):{}}catch(e){return {}}})}
+function vSet(o){return kvSet('vprofile',JSON.stringify(o))}

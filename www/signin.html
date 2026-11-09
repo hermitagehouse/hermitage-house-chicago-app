@@ -10,6 +10,7 @@
 <p style="text-align:center;margin:16px 0 0"><a href="#" id="fg" style="color:var(--ink)">Forgot your email, phone or password?</a></p>
 <p style="text-align:center;margin:10px 0 0"><a href="#" id="mk" style="color:var(--ink);font-weight:600">Create a new account</a></p></form></div>
 <p class="note" style="text-align:center;margin-top:16px">Accounts are for guests who have booked with us.</p>
+<div class="card" style="margin-top:18px"><h3>Not booked yet?</h3><p class="note">See which dates are open, send us a request, or write to us with a question.</p><button type="button" id="vs">See availability and request a stay</button></div>
 <div class="card" style="margin-top:18px"><h3>Just looking?</h3><p class="note">Look around the app with a sample stay. Nothing in it is real and nothing is sent.</p><button type="button" class="alt" id="sm">Look around with a sample stay</button></div>
 </div></main><script src="app.js"></script>
 <script>
@@ -38,6 +39,7 @@ function mail(title,intro,btn,done){openSheet(title,function(b){
   b.appendChild(g);b.appendChild(m)})}
 document.getElementById('fg').onclick=function(ev){ev.preventDefault();mail('Forgot your sign-in?','Type the email you booked with and we will email a link to choose a new password. If you forgot which email you used, message Hannah at the address on your booking confirmation.','Email me a link','If that email has a booking, we sent a link to choose a new password.')};
 document.getElementById('mk').onclick=function(ev){ev.preventDefault();mail('Create a new account','Accounts are for guests who have booked with us. Type the email you booked with and we will email a link to choose your password.','Email me a link','If that email has a booking, we sent a link to create your password.')};
+document.getElementById('vs').onclick=function(){LS.setItem('visitor','1');location.href='availability.html'};
 document.getElementById('sm').onclick=function(){
   LS.setItem('demo','1');
   kvSet('stay',JSON.stringify({id:'demo',t:'demo'})).then(function(){kvSet('profile',JSON.stringify({email:'sample@example.com',name:'Sample Guest',phone:'',others:'',pets:'',nEmail:true,nPush:true})).then(function(){location.href='index.html'})});

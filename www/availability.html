@@ -129,7 +129,9 @@ function form(){
   var msg=L(fm,'Anything else we should know?',el('textarea'));msg.rows=3;msg.maxLength=1000;
   var out=el('p','','reqmsg');out.hidden=true;
   var send=el('button','Send request');send.style.marginTop='12px';fm.appendChild(send);fm.appendChild(el('p','','note')).appendChild(link('What we do with what you tell us: Privacy','/privacy.html'));fm.appendChild(out);
-  acctCall('/api/account/me').then(function(r){if(r.me){if(!nm.value)nm.value=r.me.name||'';if(!em.value)em.value=r.me.email||'';if(!ph.value)ph.value=r.me.phone||''}});
+  kv('token').then(function(t){
+    if(t)acctCall('/api/account/me').then(function(r){if(r.me){if(!nm.value)nm.value=r.me.name||'';if(!em.value)em.value=r.me.email||'';if(!ph.value)ph.value=r.me.phone||''}});
+    else vGet().then(function(v){if(!nm.value)nm.value=v.name||'';if(!em.value)em.value=v.email||'';if(!ph.value)ph.value=v.phone||''})});
   // price, same call and wording as the website
   function sched(){clearTimeout(timer);timer=setTimeout(price,350)}
   code.oninput=sched;
@@ -162,9 +164,9 @@ function form(){
     send.disabled=true;out.hidden=true;
     acctCall('/api/request',{apt:APT,start:S0,end:E0,code:(code.value||'').toUpperCase(),guests:String(g),pets:pets.checked,petCount:pets.checked?(+pcSel.value||1):0,petList:pets.checked?pl:[],party:pt,parking:garage,name:nm.value,email:em.value,phone:ph.value,pay:paySel.value,message:msg.value,special:sp.value,curate:cur.checked,hopes:hopes.value,acks:{agree:agree.checked,pet:ackPet.checked},likes:likes,website:''}).then(function(d){
       send.disabled=false;
-      if(d.ok){fm.innerHTML='';fm.appendChild(el('h2','Thank you'));fm.appendChild(el('p','We have your request, and we will get back to you within 24 hours.'));if(d.emailed)fm.appendChild(el('p','A confirmation was also sent to your email, and you can make any changes from there.'));
+      if(d.ok){if(!LS.getItem('demo'))vSet({name:nm.value,email:em.value,phone:ph.value});fm.innerHTML='';fm.appendChild(el('h2','Thank you'));fm.appendChild(el('p','We have your request, and we will get back to you within 24 hours.'));if(d.emailed)fm.appendChild(el('p','A confirmation was also sent to your email, and you can make any changes from there.'));
         if(cur.checked&&likes.length)fm.appendChild(el('p','You asked for a more curated stay, so Hannah will put your picks together herself and be in touch.'));
-        fm.appendChild(el('p','Want a night or weekend planned for you? Tell Hannah what you are in the mood for, and she will put it together by hand.'));var a=el('a','ShallWe plan something for you?','btn');a.href='shallwe.html';fm.appendChild(a);S0=E0=null;return}
+        if(LS.getItem('visitor')!=='1'){fm.appendChild(el('p','Want a night or weekend planned for you? Tell Hannah what you are in the mood for, and she will put it together by hand.'));var a=el('a','ShallWe plan something for you?','btn');a.href='shallwe.html';fm.appendChild(a);}S0=E0=null;return}
       bad(d.message||'That didn’t send. Check the form and try again.')})};
 }
 load();

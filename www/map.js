@@ -8,6 +8,12 @@
     ['Metra', 'Ravenswood Metra station, Chicago, IL', '8 min', '#1B3358'],
     ['Mariano’s', 'Mariano’s, Clark Street, Chicago, IL', '8 min', '#2E7D32']
   ];
+  function cleanAddr(a) {
+    a = String(a).replace(/\s+/g, ' ').trim();
+    a = a.replace(/[,;]?\s*(apt|apartment|unit|suite|ste|#)\s*\.?\s*[\w-]+/ig, '');
+    if (!/chicago/i.test(a)) a += ', Chicago, IL';
+    return a;
+  }
   function fail() { /* keep the sketch */ }
   function loadScript(cb) {
     if (window.mapkit) return cb();
@@ -44,14 +50,17 @@
       });
     });
     if (house) {
-      geo.lookup(house + ', Chicago, IL', function (err, res) {
+      geo.lookup(house, function (err, res) {
         try { var p = res && res.results && res.results[0]; if (!err && p) adds.push(new mapkit.MarkerAnnotation(p.coordinate, { title: 'Hermitage House', color: '#C8102E', glyphText: 'H' })); } catch (e) {}
         fin();
       });
     } else fin();
   }
   window.showRealMap = function (address) {
-    if (started) return; started = true; house = address || null;
+    if (started) return; started = true;
+    var demo = false; try { demo = localStorage.getItem('demo') === '1'; } catch (e) {}
+    // the sample stay has a made-up address: never put a house pin for it
+    house = (!demo && address) ? cleanAddr(address) : null;
     loadScript(function () {
       try {
         mapkit.init({ authorizationCallback: function (done) { getToken(done); } });

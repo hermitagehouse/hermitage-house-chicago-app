@@ -11,13 +11,21 @@ function realChat(){
   var stays=[],cur=null,timer=null;
   var top=el('div'),box=el('div'),form=el('div');chat.appendChild(top);chat.appendChild(box);chat.appendChild(form);
   var note=el('p',"Messages here go to everyone on this stay and to your hosts, Hannah and Vlad, and are kept with your stay. Everyone in this conversation can see when a message was sent and when it was read. Please don\u2019t send card or bank details here. In an emergency, call 911.",'note');
+  function reportMsg(m){openSheet('Report this message',function(b){
+    b.appendChild(el('p','This sends the message to your hosts, Hannah and Vlad, so they can look at it. Tell them why if you like.'));
+    var t=el('textarea');t.rows=3;t.maxLength=300;t.placeholder='Why are you reporting it? (optional)';b.appendChild(t);
+    var g=el('button','Send report');g.style.marginTop='12px';var o=el('p','');
+    g.onclick=function(){g.disabled=true;acctCall('/api/account/report',{id:cur,msgId:m.id,reason:t.value}).then(function(d){g.disabled=false;o.className=d.ok===false?'err':'ok';o.textContent=d.message||(d.ok===false?'That did not send. Try again.':'Thank you. The hosts will look at it.');if(d.ok!==false)g.hidden=true})};
+    b.appendChild(g);b.appendChild(o)})}
   function paint(d){
     box.innerHTML='';form.innerHTML='';
     if(d.archived){box.appendChild(el('p','This stay was cancelled. This conversation is saved with the stay\u2019s records.','note'))}
     (d.items||[]).forEach(function(m){var mine=m.from==='guest';var b=el('div','','bub'+(mine?' me':''));if(!mine)b.appendChild(el('b',m.who||'Your host'));b.appendChild(el('div',m.text));
       var line=tm(m.at);
       if(mine){var r=Object.keys(m.reads||{}).filter(function(k){return k!=='guest'}).map(function(k){return k+', '+tmShort(m.reads[k])});line+=' \u00b7 '+(r.length?'Read by '+r.join(' and '):'Sent, not read yet')}
-      b.appendChild(el('small',line));box.appendChild(b)});
+      b.appendChild(el('small',line));
+      if(!mine&&m.id!==undefined){var rp=el('a','Report');rp.href='#';rp.style.cssText='font-size:13px;display:inline-block;margin-top:2px';rp.onclick=function(ev){ev.preventDefault();reportMsg(m)};b.appendChild(rp)}
+      box.appendChild(b)});
     if(!(d.items||[]).length)box.appendChild(el('p','No messages yet. Say hello to your hosts below.'));
     if(d.canSend===false){form.appendChild(el('p',d.archived?'To reach your hosts, start a new message in Messages.':(d.message||''),'note'))}
     else{var t=el('textarea');t.rows=3;t.maxLength=2000;t.placeholder='Write a message';t.style.marginTop='12px';form.appendChild(t);

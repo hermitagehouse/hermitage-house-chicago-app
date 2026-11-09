@@ -73,13 +73,13 @@ function loadEvents(s,e){var a=D(s),z=D(e),y=a.getFullYear();
  var box=document.getElementById('ev'),n=0;
  E.forEach(function(x){for(var yy=y;yy<=z.getFullYear();yy++){var s0=new Date(yy,x[2][0]-1,x[2][1]),e0=new Date(yy,x[3][0]-1,x[3][1]);if(s0<=z&&e0>=a){var r=el('div','','row');r.appendChild(el('span',x[0]));r.appendChild(el('b',x[1]));box.appendChild(r);n++;break}}});
  if(!n)box.appendChild(el('p','No big city events usually fall in your dates.'));
- box.appendChild(el('p','Typical timing, not exact dates. Test list.','note'))}
+ box.appendChild(el('p','Typical timing, not exact dates.','note'))}
 function loadWeather(s,e){var a=D(s),z=D(e),box=document.getElementById('wx'),note=document.getElementById('wxn');
  function iso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
  var A=iso(a),Z=iso(z);
  fetch(SITE+'/api/weather',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
   box.innerHTML='';
-  if(!j||!j.ok||!j.days){box.parentNode.style.display='none';note.textContent='';return}
+  if(!j||!j.ok||!j.days){box.style.display='none';note.style.display='none';if(box.previousElementSibling&&box.previousElementSibling.tagName==='H2')box.previousElementSibling.style.display='none';return}
   var ds=j.days.filter(function(x){return x.date>=A&&x.date<=Z});
   if(!ds.length){box.innerHTML='';note.textContent='The forecast shows about a week before you arrive.';return}
   var step=Math.max(1,Math.ceil(ds.length/6));

@@ -13,9 +13,21 @@
 .quote{background:#fff;border:1px solid rgba(58,42,32,.12);border-radius:14px;padding:12px 14px;margin:12px 0}.quote strong{display:block;font:400 30px var(--display)}.quote small{display:block;color:var(--soft);margin:4px 0}.quote p{display:flex;justify-content:space-between;margin:4px 0}.quote p strong{display:inline;font:600 16px var(--body)}#fm select{width:100%;height:48px;border-radius:12px;border:1px solid rgba(58,42,32,.2);background:#fff;padding:0 10px;font:16px var(--body);margin-top:4px}#fm label.ck input[type=radio]{margin-top:2px}#fm label.ck{font-weight:400}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chips label{background:#fff;border:1px solid rgba(58,42,32,.15);border-radius:12px;padding:6px 10px;display:flex;gap:6px;align-items:center;font-size:14px}.chips input{width:auto;margin:0}
 details.cf{margin:8px 0}details.cf summary{cursor:pointer;font-weight:600}
+
+.apts{margin:0 0 6px}.aptcard{background:#fff9ee;border:1px solid rgba(58,42,32,.12);border-radius:18px;overflow:hidden;margin:0 0 14px}
+.rstrip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}.rstrip::-webkit-scrollbar{display:none}
+.rstrip figure{margin:0;flex:0 0 100%;scroll-snap-align:start;position:relative;height:240px;background:#eadfca}.rstrip img{width:100%;height:100%;object-fit:cover;display:block}
+.rstrip figcaption{position:absolute;left:10px;bottom:10px;background:rgba(58,42,32,.72);color:#fff;font-size:13px;padding:3px 10px;border-radius:12px}
+.aptcard .tx{padding:14px 16px 16px}.aptcard h3{margin:0 0 8px}.dots{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding:0}.dots span{font-size:13.5px;background:#f0e9dc;border-radius:12px;padding:4px 10px}
+.aptcard .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}.aptcard .two button{margin:0}
+.swh{font-size:12.5px;color:var(--soft);margin:6px 16px 0}
 </style></head>
 <body><main>
 <div id="v1"><h1>Availability</h1>
+<h2 style="margin-top:6px">Our two apartments</h2>
+<p class="note">Hermitage House has two apartments in Andersonville, Chicago. Swipe the photos to see each room.</p>
+<div class="apts" id="apts"></div>
+<h2>Check dates</h2>
 <p class="note">Pick your check-in day, then your check-out day. The same calendar as our website.</p>
 <div class="aptp"><button class="alt on" id="a1">Apartment 1</button><button class="alt" id="a2">Apartment 2</button></div>
 <p class="note" id="help">Our minimum stay is 32 nights. Tap your first night, then your checkout day. Crossed-out nights are unavailable. Check-in is 3 p.m. and checkout is 11 a.m. Entry is keyless: you get a door code that is personal to you.</p>
@@ -169,5 +181,19 @@ function form(){
         if(LS.getItem('visitor')!=='1'){fm.appendChild(el('p','Want a night or weekend planned for you? Tell Hannah what you are in the mood for, and she will put it together by hand.'));var a=el('a','ShallWe plan something for you?','btn');a.href='shallwe.html';fm.appendChild(a);}S0=E0=null;return}
       bad(d.message||'That didn’t send. Check the form and try again.')})};
 }
+// Our two apartments (photos, rooms and facts copied from the website's home page)
+var APTS=[
+ {n:'1',t:'Apartment 1',url:'/apartment-1.html',pics:[['apt1-living-wide','Living room','Apartment 1 living room with a navy sofa, patterned rug and windows'],['apt1-kitchen','Kitchen','Apartment 1 kitchen with a quartz counter, four bar stools and pendant lights'],['apt1-bedroom','Bedroom','Apartment 1 bedroom with a king bed and blue plaid bedding'],['apt1-dining','Dining area','Apartment 1 dining area by a window'],['apt1-workstation','Workspace','Apartment 1 workspace with a standing desk']],dots:['One bedroom','One bath','King bed','Workspace with standing desk','Queen memory foam sleeper sofa','Free street parking','Sleeps four']},
+ {n:'2',t:'Apartment 2',url:'/apartment-2.html',pics:[['apt2-living-day-wide','Living room','Apartment 2 living room in daylight with the library wall, a loveseat and sofa under a row of windows'],['apt2-kitchen','Kitchen','Apartment 2 kitchen'],['apt2-dining','Dining area','Apartment 2 dining table'],['apt2-bedroom-green','Bedroom','Apartment 2 bedroom with a green bedspread'],['apt2-bedroom-grey-desk','Bedroom with office','Apartment 2 bedroom with a desk']],dots:['Two bedrooms','Two baths','Two king beds','Workspace with standing desk','Queen memory foam sleeper sofa','Free street parking','Sleeps six']}];
+(function(){var box=document.getElementById('apts');APTS.forEach(function(x){
+  var c=el('article','','aptcard'),st=el('div','','rstrip');st.setAttribute('role','group');st.setAttribute('aria-label','Rooms in '+x.t+', swipe to see more');
+  x.pics.forEach(function(p){var f=el('figure'),i=document.createElement('img');i.src='img/apts/'+p[0]+'.jpg';i.alt=p[2];i.loading='lazy';f.appendChild(i);f.appendChild(el('figcaption',p[1]));st.appendChild(f)});
+  c.appendChild(st);c.appendChild(el('p','Swipe for more rooms','swh'));
+  var tx=el('div','','tx');tx.appendChild(el('h3',x.t));var d=el('p','','dots');x.dots.forEach(function(t){d.appendChild(el('span',t))});tx.appendChild(d);
+  var two=el('div','','two'),look=el('button','Take a look','alt'),chk=el('button','Check dates');
+  look.onclick=function(){openSite(x.url)};
+  chk.onclick=function(){document.getElementById('a'+x.n).click();document.getElementById('cal').scrollIntoView({behavior:'smooth'})};
+  two.appendChild(look);two.appendChild(chk);tx.appendChild(two);c.appendChild(tx);box.appendChild(c)})})();
+
 load();
 </script></body></html>

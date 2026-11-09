@@ -48,23 +48,26 @@ kv('stay').then(function(v){if(!v)return;var l=JSON.parse(v);var q='?id='+encode
  api('/api/stay-update'+q).then(function(d){
   if(!d.ok)return;
   var first=(d.name||'').split(' ')[0];if(first)document.getElementById('wc').textContent='Welcome home, '+first;
-  api('/api/stay-details'+q).then(function(det){ if(window.showRealMap)window.showRealMap(det&&det.address);
+  api('/api/stay-details'+q).then(function(det){ if(window.showRealMap)window.showRealMap(det&&!det.sample&&!/sample/i.test(det.address||'')?det.address:null);
    var c=document.getElementById('stay');c.innerHTML='';
    function row(a,b){var r=el('div','','row');r.appendChild(el('span',a));r.appendChild(el('b',b));c.appendChild(r)}
-   row('Check-in',full(d.start)+', 3:00 PM');row('Check-out',full(d.end)+', 11:00 AM');
+   var old=document.getElementById('apt');if(old)old.remove();
+   if(d.apt){var hero=el('a','','tile');hero.id='apt';hero.href='stay.html';var him=document.createElement('img');him.src=String(d.apt)==='2'?'img/apt2.jpg':'img/apt1.jpg';him.alt='';hero.appendChild(him);
+     var g=det&&det.guests||d.guests;var ht=el('div','','t');ht.appendChild(el('b','Apartment '+d.apt));ht.appendChild(el('span',us(d.start)+' - '+us(d.end)+(g?' \u00b7 '+g+(g==1?' guest':' guests'):'')));hero.appendChild(ht);c.parentNode.insertBefore(hero,c)}
+   row('Check-in',us(d.start)+', 3:00pm');row('Checkout',us(d.end)+', 11:00am');
    var open=det&&det.detailsOpen;
    if(open){reveal(c,'rv_door','Door code',det.doorCode||'');reveal(c,'rv_wifi','Wi-Fi',(det.wifiName||'')+' / '+(det.wifiPassword||''))}
-   else{var o=new Date(D(d.start));o.setDate(o.getDate()-1);row('Door code and Wi-Fi','Open '+full(o.getFullYear()+'-'+(o.getMonth()+1)+'-'+o.getDate())+', 3:00 PM')}
+   else{var o=new Date(D(d.start));o.setDate(o.getDate()-1);row('Door code and Wi-Fi','Open '+us(o.getFullYear()+'-'+(o.getMonth()+1)+'-'+o.getDate())+', 3:00pm')}
    row('Contact','Hannah and Vlad');
    var ln=el('div','','lnk');var a1=el('a','Directions'),a2=el('a','Parking');ln.appendChild(a1);ln.appendChild(a2);c.appendChild(ln);
    a1.onclick=function(){sheet('Getting here',function(b){
      b.appendChild(el('h3','From O’Hare (ORD)'));b.appendChild(el('p','Train: Blue Line to Jackson, switch to the Red Line toward Howard, get off at Lawrence. About 1 hour 15 minutes. By car: about 30 to 45 minutes.'));
      b.appendChild(el('h3','From Midway (MDW)'));b.appendChild(el('p','Train: Orange Line to Roosevelt, switch to the Red Line toward Howard, get off at Lawrence. About 1 hour. By car: about 30 to 45 minutes.'));
-     b.appendChild(el('p','Times are rough and change with traffic. Test text, to be checked before it goes live.','note'));
-     if(det&&det.address){[['O’Hare','O’Hare International Airport'],['Midway','Midway International Airport']].forEach(function(r){var a=el('a','Directions from '+r[0]+' in Apple Maps','btn');a.style.marginTop='8px';a.href='https://maps.apple.com/?saddr='+encodeURIComponent(r[1])+'&daddr='+encodeURIComponent(det.address);a.onclick=function(e){e.preventDefault();var u=this.href;if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};b.appendChild(a)})}})};
+     b.appendChild(el('p','Times are rough and change with traffic.','note'));
+     if(det&&det.address&&!det.sample&&!/sample/i.test(det.address)){[['O’Hare','O’Hare International Airport'],['Midway','Midway International Airport']].forEach(function(r){var a=el('a','Directions from '+r[0]+' in Apple Maps','btn');a.style.marginTop='8px';a.href='https://maps.apple.com/?saddr='+encodeURIComponent(r[1])+'&daddr='+encodeURIComponent(det.address);a.onclick=function(e){e.preventDefault();var u=this.href;if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};b.appendChild(a)})}})};
    a2.onclick=function(){sheet('Parking',function(b){
      b.appendChild(el('p','Your stay includes a spot in our detached garage, whether or not you have a car. It is in the alley directly behind Hermitage, in the alley between Hermitage and Ravenswood.'));
-     if(open&&det.garageCode)reveal(b,'rv_garage','Garage keypad code',det.garageCode);else b.appendChild(el('p','Your garage code opens at 3:00 PM the day before you arrive, with your door code.','note'))})};
+     if(open&&det.garageCode)reveal(b,'rv_garage','Garage keypad code',det.garageCode);else b.appendChild(el('p','Your garage code opens at 3:00pm the day before you arrive, with your door code.','note'))})};
   });
   loadWeather(d.start,d.end);loadEvents(d.start,d.end);
  });});

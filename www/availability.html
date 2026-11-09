@@ -21,6 +21,13 @@ details.cf{margin:8px 0}details.cf summary{cursor:pointer;font-weight:600}
 .aptcard .tx{padding:14px 16px 16px}.aptcard h3{margin:0 0 8px}.dots{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding:0}.dots span{font-size:13.5px;background:#f0e9dc;border-radius:12px;padding:4px 10px}
 .aptcard .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}.aptcard .two button{margin:0}
 .swh{font-size:12.5px;color:var(--soft);margin:6px 16px 0}
+.pbar{margin:4px 0 8px}.pbar strong{font:400 30px var(--display);display:block;line-height:1.1}.pbar .per{font-size:15px;color:var(--soft)}.pbar small{display:block;color:var(--ink);opacity:.8;margin:4px 0;font-size:13.5px}
+.pbar .two2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.pbar .two2 button{margin:0}
+.pop{position:fixed;inset:0;background:rgba(58,42,32,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.pop .in{background:var(--cream,#F5EFE3);width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 18px calc(24px + env(safe-area-inset-bottom));position:relative}
+.pop .x{position:absolute;right:10px;top:8px;width:auto;height:auto;background:transparent;color:var(--ink);box-shadow:none;border:0;font:400 30px/1 var(--body);padding:4px 10px;margin:0}
+.pop h3{margin:0 30px 4px 0}.pop h4{margin:16px 0 4px}.pop table{width:100%;border-collapse:collapse}.pop td{padding:7px 0;border-bottom:1px solid rgba(58,42,32,.1);font-size:15px}.pop td:last-child{text-align:right;white-space:nowrap;padding-left:12px}.pop tr.tt td{font-weight:700;font-size:17px;border-bottom:0}.pop .nt{font-size:13.5px;color:var(--soft);margin:8px 0}
+.fp{margin:0 0 10px;font-size:16px}.fp b{font:400 22px var(--display)}.fp small{display:block;color:var(--soft);font-size:13px;margin-top:2px}
 </style></head>
 <body><main>
 <div id="v1"><h1>Availability</h1>
@@ -78,7 +85,7 @@ function upd(err){
   bar.hidden=false;selT.innerHTML='';var go=document.getElementById('go');go.hidden=!(S0&&E0);
   if(err)selT.appendChild(el('p',err,'err'));
   if(S0&&!E0&&!err)selT.appendChild(el('p','First night '+nice(S0)+'. Now tap your checkout day.'));
-  if(S0&&E0)selT.appendChild(el('p','Your stay: '+nice(S0)+' to '+nice(E0)+' · '+nights(S0,E0)+' nights'));
+  if(S0&&E0){selT.appendChild(el('p','Your stay: '+nice(S0)+' to '+nice(E0)+' · '+nights(S0,E0)+' nights'));showPrice(S0,E0)}
   if(!S0&&err)selT.appendChild(el('p',''))}
 function load(){
   calBox.innerHTML='<p>One moment.</p>';
@@ -93,6 +100,42 @@ document.getElementById('back').onclick=function(e){e.preventDefault();v2.hidden
 var v1=document.getElementById('v1'),v2=document.getElementById('v2');
 // ---- Request a stay: same fields, order and wording as the website (request.html / request.js)
 var LIKES=['Wine','Cocktails','Beer','Coffee','Breakfast','Brunch','Dinner','Late night','Vegetarian friendly','Vegan friendly','Gluten free','Dog friendly','Live music','Theater','Museums','Parks and outdoors','Shopping','Date night','LGBTQ+ friendly','With kids','Fitness','Quiet and relaxing'];
+// Price up front, same numbers and words as the website's apartment page (Hannah, Nov 9)
+var QSEQ=0;
+function usd(x){return '$'+Number(x).toLocaleString('en-US',{minimumFractionDigits:x%1?2:0,maximumFractionDigits:2})}
+function showPrice(a,b){
+  var n=++QSEQ,box=el('div','','pbar');selT.appendChild(box);box.appendChild(el('small','Getting your price...'));
+  api('/api/quote?apt='+APT+'&start='+a+'&end='+b+'&code=&pets=0').then(function(q){
+    if(n!==QSEQ||!box.parentNode)return;box.innerHTML='';
+    if(!q||!q.ok){box.appendChild(el('small',(q&&q.message)||'We couldn’t price those dates just now. You can still send a request.'));return}
+    var t=q.without||q['with'];if(!t){return}
+    var mon=t.monthly>0&&q.nights>=30,st=el('strong',usd(t.cash));st.appendChild(el('span',' for your '+q.nights+' nights','per'));box.appendChild(st);
+    box.appendChild(el('small',(mon?'About '+usd(Math.round(t.monthly))+' a month (a 30-night average). ':'')+'Everything included, and already our long-stay price. Pay by Zelle or bank transfer.'));
+    var bd=el('button','See the price breakdown','alt');bd.type='button';bd.style.marginTop='6px';bd.onclick=function(){breakdown(a,b,q,t,mon)};box.appendChild(bd)}).catch(function(){})}
+function breakdown(a,b,q,t,mon){
+  var o=el('div','','pop'),inn=el('div','','in');o.appendChild(inn);
+  function close(){document.removeEventListener('keydown',kd);if(o.parentNode)o.parentNode.removeChild(o)}
+  function kd(e){if(e.key==='Escape')close()}
+  var x=el('button','×','x');x.type='button';x.setAttribute('aria-label','Close');x.onclick=close;inn.appendChild(x);
+  o.addEventListener('click',function(e){if(e.target===o)close()});document.addEventListener('keydown',kd);
+  inn.appendChild(el('h3','Price breakdown'));inn.appendChild(el('p','Apartment '+APT+' · '+nice(a)+' to '+nice(b)+' · '+q.nights+' nights','nt'));
+  var tb=document.createElement('table');
+  function row(tbl,l,v,c){var tr=document.createElement('tr');if(c)tr.className=c;var d1=document.createElement('td'),d2=document.createElement('td');d1.textContent=l;d2.textContent=v;tr.appendChild(d1);tr.appendChild(d2);tbl.appendChild(tr)}
+  if(t.rows&&t.rows.length>1)t.rows.forEach(function(r){row(tb,r.nights+(r.nights===1?' night in ':' nights in ')+r.month+' at '+usd(r.rate),usd(r.amount))});
+  else if(t.rate!=null)row(tb,q.nights+' nights at '+usd(t.rate),usd(t.stay));else row(tb,q.nights+' nights',usd(t.cash-(t.cleaning||0)-(t.pet||0)));
+  if(t.cleaning)row(tb,'Cleaning',usd(t.cleaning));if(t.pet)row(tb,'Pet cleaning',usd(t.pet));
+  row(tb,'One garage space',t.garageAmt>0?usd(t.garageAmt):'Included');row(tb,'Total',usd(t.cash),'tt');inn.appendChild(tb);
+  if(mon)inn.appendChild(el('p','Average for 30 nights: '+usd(Math.round(t.monthly))+' (the total for '+q.nights+' nights, spread over 30).','nt'));
+  var rows=t.schedule&&t.schedule.rows||[];
+  if(rows.length){inn.appendChild(el('h4','Your payments, if we confirm today'));var pt=document.createElement('table');
+    rows.forEach(function(x){var when=x.date?'By '+nice(x.date):'Today';row(pt,when+(x.pct?' ('+x.pct+'%)':x.note?' ('+x.note+')':''),usd(x.amount))});inn.appendChild(pt)}
+  inn.appendChild(el('p','Everything included, and already our long-stay price. Pay by Zelle or bank transfer.','nt'));
+  document.body.appendChild(o)}
+// "From $X a month" on each apartment, the same line as the website (figure comes from the site)
+var FROM=null;
+function applyFrom(){if(!FROM)return;['1','2'].forEach(function(a){var v=FROM['a'+a],p=document.getElementById('fp'+a);if(p&&v>0&&!p.firstChild){p.innerHTML='From <b></b> a month';p.querySelector('b').textContent=usd(v);p.appendChild(el('small','Everything included. A 30-night average; stays are 32 nights or more.'))}})}
+api('/api/from-prices').then(function(r){if(r&&r.ok){FROM=r;applyFrom()}}).catch(function(){});
+
 function money(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})}
 function form(){
   v1.hidden=true;v2.hidden=false;window.scrollTo(0,0);var fm=document.getElementById('fm');fm.innerHTML='';
@@ -189,11 +232,11 @@ var APTS=[
   var c=el('article','','aptcard'),st=el('div','','rstrip');st.setAttribute('role','group');st.setAttribute('aria-label','Rooms in '+x.t+', swipe to see more');
   x.pics.forEach(function(p){var f=el('figure'),i=document.createElement('img');i.src='img/apts/'+p[0]+'.jpg';i.alt=p[2];i.loading='lazy';f.appendChild(i);f.appendChild(el('figcaption',p[1]));st.appendChild(f)});
   c.appendChild(st);c.appendChild(el('p','Swipe for more rooms','swh'));
-  var tx=el('div','','tx');tx.appendChild(el('h3',x.t));var d=el('p','','dots');x.dots.forEach(function(t){d.appendChild(el('span',t))});tx.appendChild(d);
+  var tx=el('div','','tx');tx.appendChild(el('h3',x.t));var fp=el('p','','fp');fp.id='fp'+x.n;tx.appendChild(fp);var d=el('p','','dots');x.dots.forEach(function(t){d.appendChild(el('span',t))});tx.appendChild(d);
   var two=el('div','','two'),look=el('button','Take a look','alt'),chk=el('button','Check dates');
   look.onclick=function(){openSite(x.url)};
   chk.onclick=function(){document.getElementById('a'+x.n).click();document.getElementById('cal').scrollIntoView({behavior:'smooth'})};
-  two.appendChild(look);two.appendChild(chk);tx.appendChild(two);c.appendChild(tx);box.appendChild(c)})})();
+  two.appendChild(look);two.appendChild(chk);tx.appendChild(two);c.appendChild(tx);box.appendChild(c)});applyFrom()})();
 
 load();
 </script></body></html>

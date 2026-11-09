@@ -74,15 +74,15 @@ function loadEvents(s,e){var a=D(s),z=D(e),y=a.getFullYear();
  E.forEach(function(x){for(var yy=y;yy<=z.getFullYear();yy++){var s0=new Date(yy,x[2][0]-1,x[2][1]),e0=new Date(yy,x[3][0]-1,x[3][1]);if(s0<=z&&e0>=a){var r=el('div','','row');r.appendChild(el('span',x[0]));r.appendChild(el('b',x[1]));box.appendChild(r);n++;break}}});
  if(!n)box.appendChild(el('p','No big city events usually fall in your dates.'));
  box.appendChild(el('p','Typical timing, not exact dates. Test list.','note'))}
-function loadWeather(s,e){var a=D(s),z=D(e),now=new Date(),days=(a-now)/864e5,box=document.getElementById('wx'),note=document.getElementById('wxn');
- var span=Math.round((z-a)/864e5);var fut=days<=10;var A=new Date(a),Z=new Date(z);
- if(!fut){A.setFullYear(A.getFullYear()-1);Z.setFullYear(Z.getFullYear()-1)}
+function loadWeather(s,e){var a=D(s),z=D(e),box=document.getElementById('wx'),note=document.getElementById('wxn');
  function iso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
- if(fut&&(Z-now)/864e5>15)Z=new Date(now.getTime()+15*864e5);
- var base=fut?'https://api.open-meteo.com/v1/forecast':'https://archive-api.open-meteo.com/v1/archive';
- var url=base+'?latitude=41.97&longitude=-87.67&daily=temperature_2m_max,weathercode&temperature_unit=fahrenheit&timezone=America%2FChicago&start_date='+iso(fut?(A<now?now:A):A)+'&end_date='+iso(Z);
- fetch(url).then(function(r){return r.json()}).then(function(j){var t=j.daily.time,m=j.daily.temperature_2m_max,c=j.daily.weathercode;box.innerHTML='';var step=Math.max(1,Math.ceil(t.length/6));
-  function nm(k){return k===0?'Clear':k<4?'Cloudy':k<50?'Fog':k<70?'Rain':k<80?'Snow':k<90?'Showers':'Storms'}
-  for(var i=0;i<t.length;i+=step){var d=el('div'),dt=t[i].split('-');d.appendChild(el('span',MO[+dt[1]-1]+' '+(+dt[2])));d.appendChild(el('b',Math.round(m[i])+'°'));d.appendChild(el('span',nm(c[i])));box.appendChild(d)}
-  note.textContent=fut?'Forecast for your dates.':'Your stay is further out than a forecast reaches, so this is what the same dates looked like last year.'}).catch(function(){box.innerHTML='';note.textContent='Weather could not load right now.'})}
+ var A=iso(a),Z=iso(z);
+ fetch(SITE+'/api/weather',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+  box.innerHTML='';
+  if(!j||!j.ok||!j.days){box.parentNode.style.display='none';note.textContent='';return}
+  var ds=j.days.filter(function(x){return x.date>=A&&x.date<=Z});
+  if(!ds.length){box.innerHTML='';note.textContent='The forecast shows about a week before you arrive.';return}
+  var step=Math.max(1,Math.ceil(ds.length/6));
+  for(var i=0;i<ds.length;i+=step){var x=ds[i],dt=x.date.split('-'),d=el('div');d.appendChild(el('span',MO[+dt[1]-1]+' '+(+dt[2])));d.appendChild(el('b',(x.high==null?(x.low==null?'':x.low):x.high)+'\u00b0'));d.appendChild(el('span',String(x.short||'').split(' then ')[0]));box.appendChild(d)}
+  note.textContent=(j.credit||'Forecast: National Weather Service')+'.'+(ds[ds.length-1].date<Z?' The rest shows closer to your dates.':'')}).catch(function(){box.innerHTML='';note.textContent='Weather could not load right now.'})}
 </script><script>setTimeout(function(){if(window.showRealMap)window.showRealMap(null)},8000)</script></body></html>

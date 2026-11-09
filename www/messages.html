@@ -10,7 +10,7 @@ function tmShort(x){var d=new Date(x);if(isNaN(d))return String(x||'');return d.
 function realChat(){
   var stays=[],cur=null,timer=null;
   var top=el('div'),box=el('div'),form=el('div');chat.appendChild(top);chat.appendChild(box);chat.appendChild(form);
-  var note=el('p',"Messages here go to your hosts, Hannah and Vlad, and are kept with your stay. Everyone in this conversation can see when a message was sent and when it was read. Please don\u2019t send card or bank details here. In an emergency, call 911.",'note');
+  var note=el('p',"Messages here go to everyone on this stay and to your hosts, Hannah and Vlad, and are kept with your stay. Everyone in this conversation can see when a message was sent and when it was read. Please don\u2019t send card or bank details here. In an emergency, call 911.",'note');
   function paint(d){
     box.innerHTML='';form.innerHTML='';
     if(d.archived){box.appendChild(el('p','This stay was cancelled. This conversation is saved with the stay\u2019s records.','note'))}

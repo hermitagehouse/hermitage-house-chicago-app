@@ -1,0 +1,93 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Availability</title><link rel="stylesheet" href="app.css">
+<style>
+.aptp{display:flex;gap:8px;margin:6px 0 10px}.aptp button{flex:1}.aptp .on{background:var(--green);color:#fff}
+.mo{margin:14px 0}.mo h3{margin:0 0 6px}.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cal i{font-style:normal;font-size:11px;color:var(--soft);padding:2px 0}
+.cal button{height:40px;border-radius:8px;border:0;padding:0;background:#fff;color:var(--ink);font:500 14px var(--body);box-shadow:none}
+.cal button.tk{background:transparent;color:#b9ada0;text-decoration:line-through}.cal button.ps{background:transparent;color:#d0c6ba}
+.cal button.sel{background:var(--green);color:#fff}.cal button.rng{background:#dfe6d3}
+.bar{position:sticky;bottom:78px;background:var(--cream,#F5EFE3);padding:10px 0;z-index:5}
+</style></head>
+<body><main><h1>Availability</h1>
+<p class="note">Pick your check-in day, then your check-out day. The same calendar as our website.</p>
+<div class="aptp"><button class="alt on" id="a1">Apartment 1</button><button class="alt" id="a2">Apartment 2</button></div>
+<div id="cal"><p>One moment.</p></div>
+<div class="bar card" id="bar" hidden><div id="sel"></div><button id="go">Request these dates</button></div>
+</main><script src="app.js"></script>
+<script>
+var APT='1',TAKEN={},MIN=32,S0=null,E0=null,TODAY=iso(new Date());
+function iso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function add(s,n){var p=s.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]+n);return iso(d)}
+function nights(a,b){var x=a.split('-'),y=b.split('-');return Math.round((new Date(+y[0],+y[1]-1,+y[2])-new Date(+x[0],+x[1]-1,+x[2]))/864e5)}
+var calBox=document.getElementById('cal'),bar=document.getElementById('bar'),selT=document.getElementById('sel');
+function firstTaken(a){for(var d=a,i=0;i<800;i++,d=add(d,1))if(TAKEN[d])return d;return null}
+function draw(){
+  calBox.innerHTML='';var n=new Date();
+  for(var k=0;k<13;k++){
+    var m=new Date(n.getFullYear(),n.getMonth()+k,1),mo=el('div','','mo');
+    mo.appendChild(el('h3',['January','February','March','April','May','June','July','August','September','October','November','December'][m.getMonth()]+' '+m.getFullYear()));
+    var g=el('div','','cal');['S','M','T','W','T','F','S'].forEach(function(x){g.appendChild(el('i',x))});
+    for(var i=0;i<m.getDay();i++)g.appendChild(el('span'));
+    var dim=new Date(m.getFullYear(),m.getMonth()+1,0).getDate();
+    for(var dd=1;dd<=dim;dd++){(function(day){
+      var key=iso(new Date(m.getFullYear(),m.getMonth(),day)),b=el('button',String(day));b.type='button';
+      var past=key<TODAY,tk=!!TAKEN[key];
+      if(past)b.className='ps';else if(tk)b.className='tk';
+      if(S0&&key===S0)b.className='sel';else if(E0&&key===E0)b.className='sel';else if(S0&&E0&&key>S0&&key<E0)b.className='rng';
+      b.onclick=function(){pick(key,past,tk)};g.appendChild(b)})(dd)}
+    mo.appendChild(g);calBox.appendChild(mo)}
+}
+function pick(key,past,tk){
+  if(past)return;
+  if(!S0||E0){ if(tk){say('That night is taken. Pick a free day.');return} S0=key;E0=null;upd();return}
+  if(key<=S0){ if(tk){say('That night is taken. Pick a free day.');return} S0=key;upd();return}
+  var ft=firstTaken(S0);if(ft&&key>ft){say('Those dates cross a night that is taken. Pick a shorter stay.');return}
+  if(nights(S0,key)<MIN){say('Stays are '+MIN+' nights or longer. Earliest check-out: '+nice(add(S0,MIN))+'.');return}
+  E0=key;upd();
+}
+function nice(s){var p=s.split('-');return MO[+p[1]-1]+' '+(+p[2])+', '+p[0]}
+function say(t){bar.hidden=false;selT.innerHTML='';selT.appendChild(el('p',t,'err'));document.getElementById('go').hidden=true}
+function upd(){draw();bar.hidden=false;selT.innerHTML='';var go=document.getElementById('go');
+  if(S0&&!E0){selT.appendChild(el('p','Check-in '+nice(S0)+'. Now pick your check-out day.'));go.hidden=true;return}
+  selT.appendChild(el('p','Check-in '+nice(S0)+', check-out '+nice(E0)+' ('+nights(S0,E0)+' nights).'));go.hidden=false}
+function load(){
+  calBox.innerHTML='<p>One moment.</p>';
+  api('/api/availability?apt='+APT).then(function(d){
+    if(!d||d.ok===false){calBox.innerHTML='';calBox.appendChild(el('p',(d&&d.message)||'Availability could not load. Try again.','err'));return}
+    TAKEN={};(d.guest||d.taken||[]).forEach(function(k){TAKEN[k]=1});draw()});
+}
+api('/api/rules').then(function(r){if(r&&r.minNights)MIN=+r.minNights});
+['1','2'].forEach(function(a){document.getElementById('a'+a).onclick=function(){APT=a;S0=E0=null;bar.hidden=true;document.getElementById('a1').className='alt'+(a==='1'?' on':'');document.getElementById('a2').className='alt'+(a==='2'?' on':'');load()}});
+document.getElementById('go').onclick=function(){book()};
+// booking form: same fields and rules as the website's Request a stay
+var TERMS='Full refund 45 or more days before arrival; from 15 to 44 days we keep 30% of the total price; inside 15 days we keep half of the total price.';
+function book(){
+  var maxG=APT==='1'?4:6;
+  openSheet('Request a stay',function(b){
+    function f(id,label,type,val){var l=el('label',label);l.htmlFor=id;b.appendChild(l);var i=document.createElement('input');i.id=id;if(type)i.type=type;if(val)i.value=val;b.appendChild(i);return i}
+    b.appendChild(el('p','Apartment '+APT+': '+nice(S0)+' to '+nice(E0)+' ('+nights(S0,E0)+' nights). This sends a request. Nothing is booked until we confirm it.'));
+    var gs=f('bg','Number of guests (up to '+maxG+')','number','1');gs.min=1;gs.max=maxG;
+    var pl=el('label','','ck');pl.style.cssText='display:flex;gap:10px;align-items:center;margin:10px 0';var pc=document.createElement('input');pc.type='checkbox';pc.style.width='auto';pl.appendChild(pc);pl.appendChild(document.createTextNode('We are bringing a pet'));b.appendChild(pl);
+    var pw=el('div');pw.hidden=true;b.appendChild(pw);var pn=f2(pw,'bpn','Pet name and type (for example: Max, dog)');var pa=el('label','','ck');pa.style.cssText='display:flex;gap:10px;align-items:flex-start;margin:8px 0';var pac=document.createElement('input');pac.type='checkbox';pac.style.cssText='width:auto;margin-top:4px';pa.appendChild(pac);pa.appendChild(document.createTextNode('I have read the pet rules and agree to them.'));pw.appendChild(pa);
+    pc.onchange=function(){pw.hidden=!pc.checked};
+    var nm=f('bn','Your name','text'),em=f('be','Email','email'),ph=f('bp','Phone','tel');
+    var ms=el('label','Anything we should know (optional)');ms.htmlFor='bm';b.appendChild(ms);var mt=el('textarea');mt.id='bm';mt.rows=3;mt.maxLength=1500;b.appendChild(mt);
+    acctCall('/api/account/me').then(function(r){if(r.me){if(!nm.value)nm.value=r.me.name||'';if(!em.value)em.value=r.me.email||'';if(!ph.value)ph.value=r.me.phone||''}});
+    var ag=el('label','','ck');ag.style.cssText='display:flex;gap:10px;align-items:flex-start;margin:12px 0';var agc=document.createElement('input');agc.type='checkbox';agc.style.cssText='width:auto;margin-top:4px';ag.appendChild(agc);ag.appendChild(document.createTextNode('I agree to the house rules and the cancellation terms below.'));b.appendChild(ag);
+    b.appendChild(el('p',TERMS,'note'));var pl2=el('a','Read the full cancellation policy');pl2.href='#';pl2.onclick=function(e){e.preventDefault();openSite('/cancellation.html')};b.appendChild(pl2);
+    var m=el('p','','err'),s=el('button','Send request');s.style.marginTop='12px';
+    s.onclick=function(){
+      var g=+gs.value;if(!(g>=1&&g<=maxG)){m.textContent='Guests: 1 to '+maxG+'.';return}
+      if(!nm.value.trim()||(!em.value.trim()&&!ph.value.trim())){m.textContent='Add your name and an email or phone.';return}
+      if(pc.checked&&(!pn.value.trim()||!pac.checked)){m.textContent='Add your pet’s name and tick the pet rules box.';return}
+      if(!agc.checked){m.textContent='Please tick the box to agree.';return}
+      s.disabled=true;m.className='note';m.textContent='Sending…';
+      var pets=pc.checked?[{name:pn.value.trim().split(',')[0],kind:(pn.value.split(',')[1]||'').trim(),age:''}]:[];
+      var body={apt:APT,start:S0,end:E0,code:'',guests:g,pets:pc.checked,petCount:pets.length||1,petList:pets,party:[],parking:false,name:nm.value.trim(),email:em.value.trim(),phone:ph.value.trim(),pay:'bank',message:mt.value,special:'',curate:false,hopes:'',acks:{agree:true,pet:!!pac.checked},likes:[],website:''};
+      acctCall('/api/request',body).then(function(r){s.disabled=false;
+        if(r.ok===false||!r.ok){m.className='err';m.textContent=r.message||'The request could not be sent. Please try again, or use hermitagehousechicago.com/request.html.';return}
+        b.innerHTML='';b.appendChild(el('h2','Request sent'));b.appendChild(el('p',r.message||'Thank you. We will email you about these dates.','ok'));var c=el('button','Close');c.onclick=function(){closeSheet();S0=E0=null;bar.hidden=true;draw()};b.appendChild(c)})};
+    b.appendChild(s);b.appendChild(m)})}
+function f2(w,id,ph){var i=document.createElement('input');i.id=id;i.placeholder=ph;w.appendChild(i);return i}
+load();
+</script></body></html>

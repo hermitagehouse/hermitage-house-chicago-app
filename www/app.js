@@ -64,7 +64,7 @@ api = function (path, body) {
         return { ok: true, id: s.id, name: d.me.name || s.name, apt: s.apt, start: s.start, end: s.end, status: s.status };
       });
     }
-    if (body && (path === '/api/stay-update' || path === '/api/stay-problem')) return Promise.resolve({ ok: false, message: 'Sending from your account is not connected yet. Please use Messages to reach Hannah.' });
+    if (body && (path === '/api/stay-update' || path === '/api/stay-problem')) { var b2 = Object.assign({}, body); delete b2.t; return acctCall(path, b2); }
     return _api3(path, body);
   });
 };
@@ -96,9 +96,10 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
     stay: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
     places: '<path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
     msg: '<path d="M4 5h16v11H9l-5 4z"/>',
+    cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     me: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>'
   };
-  var T = [['index.html', 'My Stay', 'home'], ['shallwe.html', 'ShallWe', 'places'], ['messages.html', 'Messages', 'msg'], ['profile.html', 'Profile', 'me']];
+  var T = [['index.html', 'My Stay', 'home'], ['shallwe.html', 'ShallWe', 'places'], ['messages.html', 'Messages', 'msg'], ['profile.html', 'Profile', 'me'], ['availability.html', 'Availability', 'cal']];
   var alias = { 'stay.html': 'index.html', 'emergency.html': 'index.html', 'getting-around.html': 'index.html', 'contact.html': 'messages.html', 'signin.html': 'profile.html' };
   var here = (location.pathname.split('/').pop() || 'index.html'); here = alias[here] || here;
   var page = location.pathname.split('/').pop() || 'index.html';
@@ -146,3 +147,19 @@ function openSheet(title, fill) {
   try { history.pushState({ sheet: 1 }, ''); } catch (e) {}
   x.focus();
 }
+
+// eye on every password box: plain icon inside the right end, no round or filled button
+(function () {
+  var EYE = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYEX = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/></svg>';
+  function add(i) {
+    if (i.dataset.eye) return; i.dataset.eye = '1';
+    var w = document.createElement('div'); w.style.cssText = 'position:relative'; i.parentNode.insertBefore(w, i); w.appendChild(i); i.style.paddingRight = '48px';
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'eye'; b.setAttribute('aria-label', 'Show password'); b.innerHTML = EYE;
+    b.style.cssText = 'position:absolute;right:2px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;background:none;box-shadow:none;border-radius:0;padding:0;margin:0;color:var(--soft);display:flex;align-items:center;justify-content:center';
+    b.onclick = function () { var show = i.type === 'password'; i.type = show ? 'text' : 'password'; b.innerHTML = show ? EYEX : EYE; b.setAttribute('aria-label', show ? 'Hide password' : 'Show password'); };
+    w.appendChild(b);
+  }
+  function scan(r) { (r.querySelectorAll ? r.querySelectorAll('input[type=password]') : []).forEach(add); }
+  document.addEventListener('DOMContentLoaded', function () { scan(document); new MutationObserver(function (ms) { ms.forEach(function (m) { m.addedNodes.forEach(function (n) { if (n.nodeType === 1) { if (n.matches && n.matches('input[type=password]')) add(n); else scan(n); } }); }); }).observe(document.body, { childList: true, subtree: true }); });
+})();

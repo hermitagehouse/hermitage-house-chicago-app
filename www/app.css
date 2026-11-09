@@ -1,7 +1,7 @@
-@font-face{font-family:"Tinos";src:url(fonts/tinos-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
-@font-face{font-family:"Allura";src:url(fonts/allura-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
-@font-face{font-family:"Young Serif";src:url(fonts/young-serif-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
-@font-face{font-family:"Hanken Grotesk";src:url(fonts/hanken-grotesk-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Tinos";src:url(fonts/tinos-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"Allura";src:url(fonts/allura-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"Young Serif";src:url(fonts/young-serif-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"Hanken Grotesk";src:url(fonts/hanken-grotesk-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:block}
 @font-face{font-family:"Hanken Grotesk";src:url(fonts/hanken-grotesk-latin-500-normal.woff2) format("woff2");font-weight:500;font-display:swap}
 @font-face{font-family:"Hanken Grotesk";src:url(fonts/hanken-grotesk-latin-600-normal.woff2) format("woff2");font-weight:600;font-display:swap}
 :root{--cream:#F5EFE3;--deep:#EBE2D0;--ink:#3A2A20;--soft:#5C4A3E;--sage:#7E8C6A;--green:#55664B;--blush:#EBD3CB;--rose:#D3A79B;--gold:#B9975B;--blue:#A9BECF;--sw-blue:#EAF1F8;--sw-navy:#1B3358;--sw-red:#C8102E;--sw-accent:#1B3358;--display:"Young Serif",Georgia,serif;--body:"Hanken Grotesk","Helvetica Neue",Arial,sans-serif}
@@ -148,3 +148,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(-
 .mark span{margin-top:-2px}
 .mark img{content:url(img/wash-home.webp);width:140%;opacity:1}
 .mark{display:table;margin:6px auto 4px}
+
+.mark{height:92px;box-sizing:border-box;overflow:visible}
+.mark img{content:url(img/wash-home.webp)}
+.backlink{display:inline-block;margin:10px 0 0;font:600 16px var(--body);color:var(--green);text-decoration:none;padding:6px 0}

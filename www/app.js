@@ -130,12 +130,16 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
 (function () {
   var page = location.pathname.split('/').pop() || 'index.html';
   if (page === 'index.html' || page === 'signin.html' || page === 'shallwe.html' || page === 'offline.html') return;
-  document.addEventListener('DOMContentLoaded', function () {
-    var m = document.querySelector('main'); if (!m) return;
+  function put() {
+    var m = document.querySelector('main'); if (!m || m.querySelector('.mark')) return;
     var a = document.createElement('a'); a.className = 'mark'; a.href = 'index.html'; a.setAttribute('aria-label', 'Hermitage House Chicago, home');
     a.innerHTML = '<img src="img/wash.webp" alt=""><b>Hermitage</b><i>House</i><span>Chicago</span>';
     m.insertBefore(a, m.firstChild);
-  });
+    if (page === 'stay.html' || page === 'emergency.html' || page === 'getting-around.html') {
+      var b = document.createElement('a'); b.className = 'backlink'; b.href = 'index.html'; b.textContent = '\u2039 Back to My Stay'; m.insertBefore(b, m.firstChild);
+    }
+  }
+  put(); document.addEventListener('DOMContentLoaded', put);
 })();
 
 // One window (sheet) for everything: X, tap outside, Escape and the phone's Back all close it; the page behind stays put
@@ -176,7 +180,7 @@ function openSheet(title, fill) {
 (function(){function go(){var m=document.querySelectorAll('.mast');if(!m.length)return;
 if(!document.getElementById('mastdefs')){var d=document.createElement('div');d.id='mastdefs';d.setAttribute('aria-hidden','true');d.style.cssText='position:absolute;width:0;height:0;overflow:hidden';d.innerHTML='<svg width="0" height="0"><defs><filter id="tx" x="-10%" y="-20%" width="120%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="8" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.03 0.5" numOctaves="2" seed="3" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.8 0 0 0 2.0" result="ba"/><feComposite in="d" in2="ba" operator="in"/></filter><filter id="brush" x="-10%" y="-60%" width="120%" height="220%"><feTurbulence type="fractalNoise" baseFrequency="0.011 0.6" numOctaves="2" seed="11" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" result="d"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -3.4 0 0 0 2.5" result="gaps"/><feComposite in="d" in2="gaps" operator="in"/></filter></defs></svg>';document.body.appendChild(d)}
 m.forEach(function(e){if(e.getAttribute('data-built'))return;e.setAttribute('data-built','1');e.innerHTML='<span class="painted" aria-label="Hermitage House Chicago"><img class="wash" src="img/wash-home.webp" alt=""><span class="h" aria-hidden="true">Hermitage</span><svg class="house" viewBox="0 0 420 150" aria-hidden="true"><text x="210" y="112" text-anchor="middle" font-family="Allura, cursive" font-size="132" fill="#3A2A20" stroke="#3A2A20" stroke-width="2.2" opacity=".88" filter="url(#tx)">House</text></svg><span class="c" aria-hidden="true">Chicago</span></span>'})}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go()})();
+go();document.addEventListener('DOMContentLoaded',go)})();
 
 // Visitor (not booked yet): details kept on this phone only, used to fill the request and message forms
 function vGet(){return kv('vprofile').then(function(v){try{return v?JSON.parse(v):{}}catch(e){return {}}})}

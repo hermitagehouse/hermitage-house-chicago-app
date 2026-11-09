@@ -3,7 +3,17 @@
 <script src="app.js"></script>
 <script>
 var box = document.getElementById('box'), S = null;
-var CHECK = ['Dishes done and counters wiped', 'Trash taken out', 'Windows and doors closed and locked', 'Heat and lights turned off', 'Belongings checked, including chargers', 'Keys or fobs left as instructed'];
+var CHECK = [];
+function checkItems(d) {
+  var a = [];
+  a.push('Dishwasher loaded with all remaining dirty dishes');
+  a.push(String(d && d.apt) === '2' ? 'All trash and recycling left in their bins by the back door. We will take them out for you!' : 'All trash and recycling left in their bins in the apartment. We will take them out for you!');
+  a.push('Please leave all used bedding on the beds. All dirty towels can go in the bathroom.');
+  a.push('Check to make sure you have collected all your belongings. If we find anything left behind we will let you know.');
+  if (d && d.garage) a.push('Garage door opener left with the remotes in the living room.');
+  return a;
+}
+function firstTime(t) { var m = /\b(\d{1,2}(?::\d{2})?)\s?([ap])\.?m\b/i.exec(String(t || '')); return m ? m[1] + m[2].toLowerCase() + 'm' : ''; }
 function clear() { box.textContent = ''; }
 function parseLink(txt) { try { var u = new URL(txt.trim()); var id = u.searchParams.get('id'), t = u.searchParams.get('t'); return id && t ? { id: id, t: t } : null; } catch (e) { return null; } }
 function entry(msg) {
@@ -60,7 +70,8 @@ function remind(d) {
   };
   box.appendChild(b); box.appendChild(m);
 }
-function checklist() {
+function checklist(d) {
+  CHECK = checkItems(d);
   box.appendChild(el('h2', 'Checkout checklist'));
   var cards = el('div', '', 'card'); box.appendChild(cards);
   kv('checks').then(function (v) {
@@ -114,11 +125,15 @@ function details(l) {
     var open = d.address || d.doorCode || d.wifiName || d.wifiPassword;
     wrap.appendChild(el('h2', 'Check-in details'));
     var c = el('div', '', 'card');
+    var ci = firstTime(d.checkInSteps) || '3:00pm', co = firstTime(d.checkOutSteps) || '11:00am';
+    var tr = el('div', '', 'times'); tr.style.cssText = 'display:flex;gap:10px;margin-bottom:10px';
+    [['Check-in', ci], ['Checkout', co]].forEach(function (x) { var h = el('div'); h.style.cssText = 'flex:1;background:#fff;border-radius:14px;padding:10px;text-align:center'; var lb = el('span', x[0]); lb.style.cssText = 'display:block;font-size:13px'; var bb = el('b', x[1]); bb.style.cssText = 'display:block;font-size:18px'; h.appendChild(lb); h.appendChild(bb); tr.appendChild(h); });
+    c.appendChild(tr);
     if (open) {
       [['Address', d.address], ['Door code', d.doorCode], ['Wi-Fi', d.wifiName], ['Wi-Fi password', d.wifiPassword]].forEach(function (x) { var r = row(x[0], x[1]); if (r) c.appendChild(r); });
       c.appendChild(el('p', "These are for your stay only. Please don't share the door code or the Wi-Fi password.", 'note'));
     } else c.appendChild(el('p', 'Your check-in details show here the day before you arrive.'));
-    [['Check-in', d.checkInSteps], ['Checkout', d.checkOutSteps], ['Parking', d.parkingNote], ['Fire extinguisher', d.extinguisher]].forEach(function (x) { var r = row(x[0], x[1]); if (r) c.appendChild(r); });
+    [['Parking', d.parkingNote], ['Fire extinguisher', d.extinguisher]].forEach(function (x) { var r = row(x[0], x[1]); if (r) c.appendChild(r); });
     wrap.appendChild(c);
     if (ACCT) {
       if (d.isBooker && RQ && !RQ.firstChild) { request('change', RQD, RQ); request('cancel', RQD, RQ); }
@@ -175,7 +190,7 @@ function show0(l, d) {
   remind(d);
   box.appendChild(el('h2', 'Let Hannah know'));
   quick("I've arrived", "I've arrived (sent from the app).", d); quick('Running late', 'Running late (sent from the app).', d);
-  checklist();
+  checklist(d);
   box.appendChild(el('h2', 'Change or cancel'));
   var rq = el('div'); box.appendChild(rq); RQ = rq; RQD = d; if (!ACCT) { request('change', d, rq); request('cancel', d, rq); }
   var pl = el('a', 'Read the full cancellation policy'); pl.href = '#'; pl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; box.appendChild(pl);

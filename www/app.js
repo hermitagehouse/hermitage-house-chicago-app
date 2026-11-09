@@ -29,7 +29,7 @@ var _api = api;
 api = function (path, body) {
   if (DEMO && path.indexOf('/api/stay') === 0) {
     if (body) return Promise.resolve({ ok: true });
-    if (path.indexOf('/api/stay-details') === 0) return Promise.resolve({ ok: true, detailsOpen: true, garageCode: '0000', address: '1234 Sample Street, Chicago (sample only)', doorCode: '0000', wifiName: 'SampleWiFi', wifiPassword: 'sample-password', checkInSteps: 'Sample check-in steps show here.', checkOutSteps: 'Sample checkout steps show here.', parkingNote: 'Sample parking note.', extinguisher: 'By the front door or in the front closet.', terms: { words: 'full refund 45 or more days before arrival; from 15 to 44 days we keep 30% of the total price; inside 15 days we keep half of the total price' } });
+    if (path.indexOf('/api/stay-details') === 0) return Promise.resolve({ ok: true, detailsOpen: true, garageCode: '0000', address: '1234 Sample Street, Chicago (sample only)', doorCode: '0000', wifiName: 'SampleWiFi', wifiPassword: 'sample-password', checkInSteps: 'Check-in is at 3:00pm. Your door code is 0000 (sample only).', checkOutSteps: 'Checkout is at 11:00am. Please review check out instructions prior to departure.', parkingNote: 'Sample parking note.', extinguisher: 'By the front door or in the front closet.', terms: { words: 'full refund 45 or more days before arrival; from 15 to 44 days we keep 30% of the total price; inside 15 days we keep half of the total price' } });
     return Promise.resolve({ ok: true, name: 'Sample Guest', apt: '1', start: '2027-01-10', end: '2027-02-12', guests: 2, pets: false, garage: false });
   }
   return _api(path, body);

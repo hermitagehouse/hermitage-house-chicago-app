@@ -5,89 +5,167 @@
 .cal i{font-style:normal;font-size:11px;color:var(--soft);padding:2px 0}
 .cal button{height:40px;border-radius:8px;border:0;padding:0;background:#fff;color:var(--ink);font:500 14px var(--body);box-shadow:none}
 .cal button.tk{background:transparent;color:#b9ada0;text-decoration:line-through}.cal button.ps{background:transparent;color:#d0c6ba}
-.cal button.sel{background:var(--green);color:#fff}.cal button.rng{background:#dfe6d3}
+.cal button.far{background:#f0e9dc}.cal button.sel,.cal button.out{background:var(--green);color:#fff}.cal button.rng{background:#dfe6d3}
+.key{font-size:12px;color:var(--soft);display:flex;gap:12px;flex-wrap:wrap;margin:4px 0 8px}.key span:before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:#fff;border:1px solid #d6cdbf}.key .t:before{background:transparent;border-color:#b9ada0}.key .y:before{background:var(--green);border-color:var(--green)}.key .f:before{background:#f0e9dc}
 .bar{position:sticky;bottom:78px;background:var(--cream,#F5EFE3);padding:10px 0;z-index:5}
+#fm label.ck{display:flex;gap:10px;align-items:flex-start;margin:10px 0}#fm label.ck input{width:auto;margin-top:4px}
+#fm .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}#fm .prow{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:6px;margin:6px 0}
+.quote{background:#fff;border:1px solid rgba(58,42,32,.12);border-radius:14px;padding:12px 14px;margin:12px 0}.quote strong{display:block;font:400 30px var(--display)}.quote small{display:block;color:var(--soft);margin:4px 0}.quote p{display:flex;justify-content:space-between;margin:4px 0}.quote p strong{display:inline;font:600 16px var(--body)}#fm select{width:100%;height:48px;border-radius:12px;border:1px solid rgba(58,42,32,.2);background:#fff;padding:0 10px;font:16px var(--body);margin-top:4px}#fm label.ck input[type=radio]{margin-top:2px}#fm label.ck{font-weight:400}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips label{background:#fff;border:1px solid rgba(58,42,32,.15);border-radius:12px;padding:6px 10px;display:flex;gap:6px;align-items:center;font-size:14px}.chips input{width:auto;margin:0}
+details.cf{margin:8px 0}details.cf summary{cursor:pointer;font-weight:600}
 </style></head>
-<body><main><h1>Availability</h1>
+<body><main>
+<div id="v1"><h1>Availability</h1>
 <p class="note">Pick your check-in day, then your check-out day. The same calendar as our website.</p>
 <div class="aptp"><button class="alt on" id="a1">Apartment 1</button><button class="alt" id="a2">Apartment 2</button></div>
+<p class="note" id="help">Our minimum stay is 32 nights. Tap your first night, then your checkout day. Crossed-out nights are unavailable. Check-in is 3 p.m. and checkout is 11 a.m. Entry is keyless: you get a door code that is personal to you.</p>
+<div class="key"><span>Open</span><span class="t">Unavailable</span><span class="y">Yours</span><span class="f">More than a year out</span></div>
 <div id="cal"><p>One moment.</p></div>
-<div class="bar card" id="bar" hidden><div id="sel"></div><button id="go">Request these dates</button></div>
+<p class="note" id="far" hidden>Dates more than a year out need a little extra approval from us. Send the request and we will let you know.</p>
+<div class="bar card" id="bar" hidden><div id="sel"></div><button id="go">Request these dates</button></div></div>
+<div id="v2" hidden><a href="#" id="back">‹ Back to the calendar</a><h1>Request a stay</h1><div id="fm"></div></div>
 </main><script src="app.js"></script>
 <script>
-var APT='1',TAKEN={},MIN=32,S0=null,E0=null,TODAY=iso(new Date());
+function CH(d){return d.toLocaleDateString('en-CA',{timeZone:'America/Chicago'})}
+var APT='1',TAKEN={},GUEST={},MIN=32,S0=null,E0=null,TODAY=CH(new Date()),BASE=new Date(TODAY+'T12:00:00'),FAR=sh(TODAY,365);
 function iso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
-function add(s,n){var p=s.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]+n);return iso(d)}
-function nights(a,b){var x=a.split('-'),y=b.split('-');return Math.round((new Date(+y[0],+y[1]-1,+y[2])-new Date(+x[0],+x[1]-1,+x[2]))/864e5)}
-var calBox=document.getElementById('cal'),bar=document.getElementById('bar'),selT=document.getElementById('sel');
-function firstTaken(a){for(var d=a,i=0;i<800;i++,d=add(d,1))if(TAKEN[d])return d;return null}
+function sh(s,n){var d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)}
+function nights(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5)}
+function nice(s){var p=s.split('-');return MO[+p[1]-1]+' '+(+p[2])+', '+p[0]}
+var calBox=document.getElementById('cal'),bar=document.getElementById('bar'),selT=document.getElementById('sel'),farN=document.getElementById('far');
+function crosses(a,b){for(var d=a;d<b;d=sh(d,1))if(TAKEN[d])return true;return false}
+function cls(k){
+  var c=k<TODAY?'past':(TAKEN[k]?'taken':'open');
+  var turn=c==='open'&&(GUEST[sh(k,-1)]?'after':(GUEST[sh(k,1)]?'before':''));
+  if(turn&&!(S0&&!E0&&k>S0&&turn==='before'))c='taken';
+  return c}
 function draw(){
-  calBox.innerHTML='';var n=new Date();
-  for(var k=0;k<13;k++){
-    var m=new Date(n.getFullYear(),n.getMonth()+k,1),mo=el('div','','mo');
-    mo.appendChild(el('h3',['January','February','March','April','May','June','July','August','September','October','November','December'][m.getMonth()]+' '+m.getFullYear()));
+  calBox.innerHTML='';var NM=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  for(var k=0;k<24;k++){
+    var m=new Date(BASE.getFullYear(),BASE.getMonth()+k,1),mo=el('div','','mo');
+    mo.appendChild(el('h3',NM[m.getMonth()]+' '+m.getFullYear()));
     var g=el('div','','cal');['S','M','T','W','T','F','S'].forEach(function(x){g.appendChild(el('i',x))});
     for(var i=0;i<m.getDay();i++)g.appendChild(el('span'));
     var dim=new Date(m.getFullYear(),m.getMonth()+1,0).getDate();
     for(var dd=1;dd<=dim;dd++){(function(day){
       var key=iso(new Date(m.getFullYear(),m.getMonth(),day)),b=el('button',String(day));b.type='button';
-      var past=key<TODAY,tk=!!TAKEN[key];
-      if(past)b.className='ps';else if(tk)b.className='tk';
-      if(S0&&key===S0)b.className='sel';else if(E0&&key===E0)b.className='sel';else if(S0&&E0&&key>S0&&key<E0)b.className='rng';
-      b.onclick=function(){pick(key,past,tk)};g.appendChild(b)})(dd)}
+      var c=cls(key),open=c==='open';
+      if(c==='past')b.className='ps';else if(c==='taken')b.className='tk';else if(key>=FAR)b.className='far';
+      if(open&&S0&&key===S0)b.className='sel';else if(E0&&key===E0&&c!=='past')b.className='out';else if(open&&S0&&E0&&key>S0&&key<E0)b.className='rng';
+      b.onclick=function(){if(open||(E0&&key===E0))pick(key)};g.appendChild(b)})(dd)}
     mo.appendChild(g);calBox.appendChild(mo)}
 }
-function pick(key,past,tk){
-  if(past)return;
-  if(!S0||E0){ if(tk){say('That night is taken. Pick a free day.');return} S0=key;E0=null;upd();return}
-  if(key<=S0){ if(tk){say('That night is taken. Pick a free day.');return} S0=key;upd();return}
-  var ft=firstTaken(S0);if(ft&&key>ft){say('Those dates cross a night that is taken. Pick a shorter stay.');return}
-  if(nights(S0,key)<MIN){say('Stays are '+MIN+' nights or longer. Earliest check-out: '+nice(add(S0,MIN))+'.');return}
-  E0=key;upd();
-}
-function nice(s){var p=s.split('-');return MO[+p[1]-1]+' '+(+p[2])+', '+p[0]}
-function say(t){bar.hidden=false;selT.innerHTML='';selT.appendChild(el('p',t,'err'));document.getElementById('go').hidden=true}
-function upd(){draw();bar.hidden=false;selT.innerHTML='';var go=document.getElementById('go');
-  if(S0&&!E0){selT.appendChild(el('p','Check-in '+nice(S0)+'. Now pick your check-out day.'));go.hidden=true;return}
-  selT.appendChild(el('p','Check-in '+nice(S0)+', check-out '+nice(E0)+' ('+nights(S0,E0)+' nights).'));go.hidden=false}
+function pick(k){
+  if(!S0||E0||k<=S0){S0=k;E0=null;return upd()}
+  if(crosses(S0,k)){S0=k;E0=null;return upd('Some of those nights are unavailable. Pick a first night again, or choose a checkout day before the next taken night.')}
+  if(nights(S0,k)<MIN){return upd('Our minimum stay is '+MIN+' nights. Pick a checkout day on or after '+nice(sh(S0,MIN))+'.')}
+  E0=k;upd()}
+function upd(err){
+  var y=document.documentElement.scrollTop||document.body.scrollTop;draw();window.scrollTo(0,y);
+  farN.hidden=!((S0&&S0>=FAR)||(E0&&E0>=FAR));
+  bar.hidden=false;selT.innerHTML='';var go=document.getElementById('go');go.hidden=!(S0&&E0);
+  if(err)selT.appendChild(el('p',err,'err'));
+  if(S0&&!E0&&!err)selT.appendChild(el('p','First night '+nice(S0)+'. Now tap your checkout day.'));
+  if(S0&&E0)selT.appendChild(el('p','Your stay: '+nice(S0)+' to '+nice(E0)+' · '+nights(S0,E0)+' nights'));
+  if(!S0&&err)selT.appendChild(el('p',''))}
 function load(){
   calBox.innerHTML='<p>One moment.</p>';
   api('/api/availability?apt='+APT).then(function(d){
-    if(!d||d.ok===false){calBox.innerHTML='';calBox.appendChild(el('p',(d&&d.message)||'Availability could not load. Try again.','err'));return}
-    TAKEN={};(d.guest||d.taken||[]).forEach(function(k){TAKEN[k]=1});draw()});
+    if(!d||d.ok===false||!d.taken){calBox.innerHTML='';calBox.appendChild(el('p','The calendar isn’t loading right now. Write to us at hello@hermitagehousechicago.com and we’ll tell you which dates are open.','err'));return}
+    TAKEN={};GUEST={};d.taken.forEach(function(k){TAKEN[k]=1});(d.guest||d.taken).forEach(function(k){GUEST[k]=1});draw()});
 }
-api('/api/rules').then(function(r){if(r&&r.minNights)MIN=+r.minNights});
-['1','2'].forEach(function(a){document.getElementById('a'+a).onclick=function(){APT=a;S0=E0=null;bar.hidden=true;document.getElementById('a1').className='alt'+(a==='1'?' on':'');document.getElementById('a2').className='alt'+(a==='2'?' on':'');load()}});
-document.getElementById('go').onclick=function(){book()};
-// booking form: same fields and rules as the website's Request a stay
-var TERMS='Full refund 45 or more days before arrival; from 15 to 44 days we keep 30% of the total price; inside 15 days we keep half of the total price.';
-function book(){
-  var maxG=APT==='1'?4:6;
-  openSheet('Request a stay',function(b){
-    function f(id,label,type,val){var l=el('label',label);l.htmlFor=id;b.appendChild(l);var i=document.createElement('input');i.id=id;if(type)i.type=type;if(val)i.value=val;b.appendChild(i);return i}
-    b.appendChild(el('p','Apartment '+APT+': '+nice(S0)+' to '+nice(E0)+' ('+nights(S0,E0)+' nights). This sends a request. Nothing is booked until we confirm it.'));
-    var gs=f('bg','Number of guests (up to '+maxG+')','number','1');gs.min=1;gs.max=maxG;
-    var pl=el('label','','ck');pl.style.cssText='display:flex;gap:10px;align-items:center;margin:10px 0';var pc=document.createElement('input');pc.type='checkbox';pc.style.width='auto';pl.appendChild(pc);pl.appendChild(document.createTextNode('We are bringing a pet'));b.appendChild(pl);
-    var pw=el('div');pw.hidden=true;b.appendChild(pw);var pn=f2(pw,'bpn','Pet name and type (for example: Max, dog)');var pa=el('label','','ck');pa.style.cssText='display:flex;gap:10px;align-items:flex-start;margin:8px 0';var pac=document.createElement('input');pac.type='checkbox';pac.style.cssText='width:auto;margin-top:4px';pa.appendChild(pac);pa.appendChild(document.createTextNode('I have read the pet rules and agree to them.'));pw.appendChild(pa);
-    pc.onchange=function(){pw.hidden=!pc.checked};
-    var nm=f('bn','Your name','text'),em=f('be','Email','email'),ph=f('bp','Phone','tel');
-    var ms=el('label','Anything we should know (optional)');ms.htmlFor='bm';b.appendChild(ms);var mt=el('textarea');mt.id='bm';mt.rows=3;mt.maxLength=1500;b.appendChild(mt);
-    acctCall('/api/account/me').then(function(r){if(r.me){if(!nm.value)nm.value=r.me.name||'';if(!em.value)em.value=r.me.email||'';if(!ph.value)ph.value=r.me.phone||''}});
-    var ag=el('label','','ck');ag.style.cssText='display:flex;gap:10px;align-items:flex-start;margin:12px 0';var agc=document.createElement('input');agc.type='checkbox';agc.style.cssText='width:auto;margin-top:4px';ag.appendChild(agc);ag.appendChild(document.createTextNode('I agree to the house rules and the cancellation terms below.'));b.appendChild(ag);
-    b.appendChild(el('p',TERMS,'note'));var pl2=el('a','Read the full cancellation policy');pl2.href='#';pl2.onclick=function(e){e.preventDefault();openSite('/cancellation.html')};b.appendChild(pl2);
-    var m=el('p','','err'),s=el('button','Send request');s.style.marginTop='12px';
-    s.onclick=function(){
-      var g=+gs.value;if(!(g>=1&&g<=maxG)){m.textContent='Guests: 1 to '+maxG+'.';return}
-      if(!nm.value.trim()||(!em.value.trim()&&!ph.value.trim())){m.textContent='Add your name and an email or phone.';return}
-      if(pc.checked&&(!pn.value.trim()||!pac.checked)){m.textContent='Add your pet’s name and tick the pet rules box.';return}
-      if(!agc.checked){m.textContent='Please tick the box to agree.';return}
-      s.disabled=true;m.className='note';m.textContent='Sending…';
-      var pets=pc.checked?[{name:pn.value.trim().split(',')[0],kind:(pn.value.split(',')[1]||'').trim(),age:''}]:[];
-      var body={apt:APT,start:S0,end:E0,code:'',guests:g,pets:pc.checked,petCount:pets.length||1,petList:pets,party:[],parking:false,name:nm.value.trim(),email:em.value.trim(),phone:ph.value.trim(),pay:'bank',message:mt.value,special:'',curate:false,hopes:'',acks:{agree:true,pet:!!pac.checked},likes:[],website:''};
-      acctCall('/api/request',body).then(function(r){s.disabled=false;
-        if(r.ok===false||!r.ok){m.className='err';m.textContent=r.message||'The request could not be sent. Please try again, or use hermitagehousechicago.com/request.html.';return}
-        b.innerHTML='';b.appendChild(el('h2','Request sent'));b.appendChild(el('p',r.message||'Thank you. We will email you about these dates.','ok'));var c=el('button','Close');c.onclick=function(){closeSheet();S0=E0=null;bar.hidden=true;draw()};b.appendChild(c)})};
-    b.appendChild(s);b.appendChild(m)})}
-function f2(w,id,ph){var i=document.createElement('input');i.id=id;i.placeholder=ph;w.appendChild(i);return i}
+api('/api/rules').then(function(r){if(r&&r.minNights){MIN=+r.minNights;document.getElementById('help').textContent=document.getElementById('help').textContent.replace('32 nights',MIN+' nights')}});
+['1','2'].forEach(function(a){document.getElementById('a'+a).onclick=function(){APT=a;S0=E0=null;bar.hidden=true;farN.hidden=true;document.getElementById('a1').className='alt'+(a==='1'?' on':'');document.getElementById('a2').className='alt'+(a==='2'?' on':'');load()}});
+document.getElementById('go').onclick=function(){form()};
+document.getElementById('back').onclick=function(e){e.preventDefault();v2.hidden=true;v1.hidden=false;window.scrollTo(0,0)};
+var v1=document.getElementById('v1'),v2=document.getElementById('v2');
+// ---- Request a stay: same fields, order and wording as the website (request.html / request.js)
+var LIKES=['Wine','Cocktails','Beer','Coffee','Breakfast','Brunch','Dinner','Late night','Vegetarian friendly','Vegan friendly','Gluten free','Dog friendly','Live music','Theater','Museums','Parks and outdoors','Shopping','Date night','LGBTQ+ friendly','With kids','Fitness','Quiet and relaxing'];
+function money(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})}
+function form(){
+  v1.hidden=true;v2.hidden=false;window.scrollTo(0,0);var fm=document.getElementById('fm');fm.innerHTML='';
+  var maxG=APT==='1'?4:6,last=null,seq=0,timer=null;
+  function L(parent,label,node){var l=el('label');l.appendChild(document.createTextNode(label));l.appendChild(node);parent.appendChild(l);return node}
+  function inp(type,id,val){var i=document.createElement('input');i.type=type||'text';if(id)i.id=id;if(val!==undefined)i.value=val;return i}
+  function ck(parent,text,id){var l=el('label','','ck');var c=inp('checkbox',id);l.appendChild(c);var s=el('span');if(typeof text==='string')s.textContent=text;else s.appendChild(text);l.appendChild(s);parent.appendChild(l);return c}
+  function link(t,path){var a=el('a',t);a.href='#';a.onclick=function(e){e.preventDefault();openSite(path)};return a}
+  fm.appendChild(el('p','Pick your dates and send us a request. We will get back to you within 24 hours. Nothing is charged until your reservation is accepted.','note'));
+  fm.appendChild(el('p','Apartment '+APT+' · '+nice(S0)+' to '+nice(E0)+' · '+nights(S0,E0)+' nights','card'));
+  var two=el('div','','two');fm.appendChild(two);
+  var gs=L(two,'Guests *',inp('number','rg','2'));gs.min=1;gs.max=maxG;
+  var code=L(two,'Discount code, if applicable',inp('text','rc'));code.autocapitalize='characters';code.style.textTransform='uppercase';
+  var pets=ck(fm,'We are bringing a pet','rp');
+  var pw=el('div');pw.hidden=true;fm.appendChild(pw);
+  var pcSel=document.createElement('select');[1,2,3,4].forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;pcSel.appendChild(o)});L(pw,'How many pets?',pcSel);
+  pw.appendChild(el('p','Tell us about each one. A name is required for each pet.','note'));
+  var prow=[];for(var i=1;i<=4;i++){(function(i){var r=el('div','','prow');var n=inp('text');n.placeholder='Name';n.maxLength=40;n.setAttribute('aria-label','Pet '+i+' name');var k=document.createElement('select');['Dog','Cat','Other'].forEach(function(x){var o=document.createElement('option');o.value=x;o.textContent=x;k.appendChild(o)});k.setAttribute('aria-label','Pet '+i+' kind');var a=inp('text');a.placeholder='Age';a.maxLength=20;a.setAttribute('aria-label','Pet '+i+' age');r.appendChild(n);r.appendChild(k);r.appendChild(a);pw.appendChild(r);prow.push({r:r,n:n,k:k,a:a})})(i)}
+  function drawPets(){var c=+pcSel.value||1;prow.forEach(function(x,i){x.r.hidden=i>=c})}drawPets();pcSel.onchange=function(){drawPets();sched()};
+  pets.onchange=function(){pw.hidden=!pets.checked;ackPetW.hidden=!pets.checked;sched()};
+  var party=el('div');party.hidden=true;fm.appendChild(party);
+  party.appendChild(el('p','Who else is coming? A first name for each guest is all we need. Email and phone are optional. If you add an email, we will send them a short welcome with a link to the site once your stay is approved.','note'));
+  var prows=el('div');party.appendChild(prows);var PR=[];
+  function drawParty(){var n=Math.max(0,Math.min(+gs.value||1,maxG)-1);party.hidden=n===0;
+    while(PR.length<n){var i=PR.length+2,r=el('div');r.appendChild(el('b','Guest '+i));var a=inp('text');a.placeholder='First name';a.maxLength=60;var b=inp('email');b.placeholder='Email (optional)';var c=inp('tel');c.placeholder='Phone (optional)';r.appendChild(a);r.appendChild(b);r.appendChild(c);prows.appendChild(r);PR.push({r:r,gn:a,ge:b,gp:c})}
+    PR.forEach(function(x,i){x.r.hidden=i>=n})}
+  drawParty();gs.oninput=function(){drawParty();sched()};
+  var qb=el('div','','quote');qb.hidden=true;fm.appendChild(qb);
+  var gar=el('div');gar.hidden=true;fm.appendChild(gar);var garW,garO;
+  [['without','Without garage parking'],['with','With garage parking']].forEach(function(x,i){var l=el('label','','ck');var r=inp('radio');r.name='garage';r.value=x[0];if(i===0)r.checked=true;r.onchange=function(){render()};l.appendChild(r);l.appendChild(el('span',x[1]));gar.appendChild(l)});
+  function garVal(){var r=gar.querySelector('input:checked');return r?r.value:'without'}
+  fm.appendChild(el('hr'));
+  var two2=el('div','','two');fm.appendChild(two2);
+  var nm=L(two2,'Your name *',inp('text','rn')),em=L(two2,'Email *',inp('email','re'));nm.autocomplete='name';em.autocomplete='email';
+  var ph=L(fm,'Phone *',inp('tel','rph'));fm.appendChild(el('p','The last four digits become the door code. It is always the phone of the person booking.','note'));
+  var paySel=document.createElement('select');[['cash','Zelle or cash'],['bank','Bank transfer (you approve the payments on the secure bank link, and each is taken on its due date)']].forEach(function(x){var o=document.createElement('option');o.value=x[0];o.textContent=x[1];paySel.appendChild(o)});L(fm,'How would you like to pay?',paySel);paySel.onchange=function(){render()};
+  var det=el('details','','cf');det.appendChild(el('summary','How do payments work?'));det.appendChild(el('p','30% when you book. 35% two weeks before you arrive (so 65% by arrival). The last 35% one month after you check in. If you book less than two weeks before arrival, 65% is due when you book.'));det.appendChild(el('p','Paying by Zelle? Your bank may limit how much you can send in a day. A payment over that limit may be sent over two days; the due date still applies. Questions? Write to hello@hermitagehousechicago.com.'));fm.appendChild(det);
+  var ackPetW=el('div');ackPetW.hidden=true;fm.appendChild(ackPetW);var ackPet=ck(ackPetW,'I will pick up after my pet, using the bags provided. *');
+  var agT=el('span');agT.appendChild(document.createTextNode('I’ve read and agree to the '));agT.appendChild(link('house rules','/house-rules.html'));agT.appendChild(document.createTextNode(', the '));agT.appendChild(link('cancellation policy','/cancellation.html'));agT.appendChild(document.createTextNode(' and the '));agT.appendChild(link('privacy page','/privacy.html'));agT.appendChild(document.createTextNode('. *'));
+  var agree=ck(fm,agT);
+  var sp=L(fm,'Special requests, like champagne or flowers waiting for you',el('textarea'));sp.rows=3;sp.maxLength=600;
+  var cur=ck(fm,'I would like a more curated stay');
+  var cb=el('div');cb.hidden=true;fm.appendChild(cb);cb.appendChild(el('p','Pick what you like and tell us what you hope to do here. We will put together ideas for you. This is optional.','note'));
+  var chips=el('div','','chips');cb.appendChild(chips);LIKES.forEach(function(x){var l=el('label');var c=inp('checkbox',null,x);l.appendChild(c);l.appendChild(document.createTextNode(x));chips.appendChild(l)});
+  var hopes=L(cb,'What are you hoping to see and do?',el('textarea'));hopes.rows=3;hopes.maxLength=600;cur.onchange=function(){cb.hidden=!cur.checked};
+  var msg=L(fm,'Anything else we should know?',el('textarea'));msg.rows=3;msg.maxLength=1000;
+  var out=el('p','','reqmsg');out.hidden=true;
+  var send=el('button','Send request');send.style.marginTop='12px';fm.appendChild(send);fm.appendChild(el('p','','note')).appendChild(link('What we do with what you tell us: Privacy','/privacy.html'));fm.appendChild(out);
+  acctCall('/api/account/me').then(function(r){if(r.me){if(!nm.value)nm.value=r.me.name||'';if(!em.value)em.value=r.me.email||'';if(!ph.value)ph.value=r.me.phone||''}});
+  // price, same call and wording as the website
+  function sched(){clearTimeout(timer);timer=setTimeout(price,350)}
+  code.oninput=sched;
+  function price(){var n=++seq;api('/api/quote?apt='+APT+'&start='+S0+'&end='+E0+'&code='+encodeURIComponent((code.value||'').toUpperCase())+'&pets='+(pets.checked?1:0)).then(function(d){if(n===seq){last=d;render()}})}
+  function render(){
+    qb.hidden=false;qb.innerHTML='';gar.hidden=true;if(!last)return;
+    if(!last.ok){var p=el('span',last.message||'We couldn’t price that just now. Try again.','err');qb.appendChild(p);return}
+    var has=!!last['with'],free=has&&last['with'].cash===last['without'].cash,pill=has&&!free;gar.hidden=!pill;
+    var pickq=pill&&garVal()==='with'?last['with']:last['without'];
+    qb.appendChild(el('small',last.nights+' nights'));
+    if(last.caseByCase)qb.appendChild(el('small','Stays that run more than a year, or start more than a year out, are reviewed first. Send your request and we will write back.'));
+    qb.appendChild(el('strong',money(pickq.cash)));
+    var l1=el('small','Everything included, and already our long-stay price. Pay by Zelle or bank transfer.');if(pickq.wasCash&&pickq.wasCash>pickq.cash)l1.appendChild(document.createTextNode(' Friends and family price.'));qb.appendChild(l1);
+    qb.appendChild(el('small','30% holds your dates. The rest is paid in two more steps, before and after you arrive.'));
+    var sc=pickq.schedule;if(sc&&sc.rows&&sc.rows.length){var box=el('div');box.appendChild(el('small','Your payments'+(paySel.value==='bank'?' by bank transfer':' by Zelle or cash')+', if we confirm today'));
+      sc.rows.forEach(function(x){var r=el('p'),d=x.date?new Date(x.date+'T12:00:00'):null;var when=d?'By '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Today';r.appendChild(el('span',when+(x.pct?' ('+x.pct+'%)':x.note?' ('+x.note+')':'')));r.appendChild(el('strong',money(x.amount)));box.appendChild(r)});
+      box.appendChild(el('small','The cleaning is included in these amounts'+(last.pets?', with $'+last.petExtra+' added for your pet':'')+(free?', and so is one garage space':(pill&&garVal()==='with'?', and so is garage parking':''))+'.'));qb.appendChild(box)}
+    if(!has)qb.appendChild(el('small','Street parking is free, and one garage space is included.'))}
+  price();
+  function bad(t){out.hidden=false;out.className='reqmsg err';out.textContent=t;out.scrollIntoView({block:'center'})}
+  send.onclick=function(){
+    if(!agree.checked)return bad('Please tick the box to agree to our house rules and policies.');
+    var pl=[];if(pets.checked){var c=+pcSel.value||1;prow.forEach(function(x,i){if(i<c&&x.n.value.trim())pl.push({name:x.n.value.trim(),kind:x.k.value,age:x.a.value.trim()})});
+      if(!ackPet.checked)return bad('Please tick the boxes to agree before sending.');if(!pl.length)return bad('Add at least one pet’s name, or untick the pet box.');if(pl.length<c)return bad('Add a name for each of your '+c+' pets.')}
+    var pt=PR.filter(function(x){return !x.r.hidden}).map(function(x){return{name:x.gn.value.trim(),email:x.ge.value.trim(),phone:x.gp.value.trim()}});
+    if(pt.some(function(g){return !g.name}))return bad('Add a first name for each guest coming with you.');
+    if(!nm.value.trim()||!em.value.trim()||!ph.value.trim())return bad('Add your name, email and phone.');
+    var g=+gs.value;if(!(g>=1&&g<=maxG))return bad('Guests: 1 to '+maxG+'.');
+    var garage=!gar.hidden&&garVal()==='with',likes=[].slice.call(chips.querySelectorAll('input:checked')).map(function(x){return x.value});
+    send.disabled=true;out.hidden=true;
+    acctCall('/api/request',{apt:APT,start:S0,end:E0,code:(code.value||'').toUpperCase(),guests:String(g),pets:pets.checked,petCount:pets.checked?(+pcSel.value||1):0,petList:pets.checked?pl:[],party:pt,parking:garage,name:nm.value,email:em.value,phone:ph.value,pay:paySel.value,message:msg.value,special:sp.value,curate:cur.checked,hopes:hopes.value,acks:{agree:agree.checked,pet:ackPet.checked},likes:likes,website:''}).then(function(d){
+      send.disabled=false;
+      if(d.ok){fm.innerHTML='';fm.appendChild(el('h2','Thank you'));fm.appendChild(el('p','We have your request, and we will get back to you within 24 hours.'));if(d.emailed)fm.appendChild(el('p','A confirmation was also sent to your email, and you can make any changes from there.'));
+        if(cur.checked&&likes.length)fm.appendChild(el('p','You asked for a more curated stay, so Hannah will put your picks together herself and be in touch.'));
+        fm.appendChild(el('p','Want a night or weekend planned for you? Tell Hannah what you are in the mood for, and she will put it together by hand.'));var a=el('a','ShallWe plan something for you?','btn');a.href='shallwe.html';fm.appendChild(a);S0=E0=null;return}
+      bad(d.message||'That didn’t send. Check the form and try again.')})};
+}
 load();
 </script></body></html>

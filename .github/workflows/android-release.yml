@@ -48,6 +48,8 @@ jobs:
           echo "$f"; grep -o 'uses-permission[^/]*' "$f" || true
           if grep -q "AD_ID" "$f"; then echo "::error::AD_ID permission is present"; exit 1; fi
           grep -o 'targetSdkVersion="[0-9]*"' "$f" || true
+          grep -o 'minSdkVersion="[0-9]*"' "$f" || true
+          if grep -q "c2dm" "$f"; then echo "::error::A push messaging permission is present"; exit 1; fi
       - uses: actions/upload-artifact@v4
         with:
           name: hermitage-house-chicago-release-aab

@@ -34,7 +34,52 @@ api = function (path, body) {
   }
   return _api(path, body);
 };
-function leaveDemo() { LS.removeItem('demo'); ['stay', 'trip', 'safety', 'checks', 'profile', 'chat'].forEach(kvDel); }
+// REAL ACCOUNT MODE: after sign-in the app holds a token (secure storage) and talks to /api/account/*
+function acctCall(path, body) {
+  return kv('token').then(function (t) {
+    var h = { 'Content-Type': 'application/json' }; if (t) h.Authorization = 'Bearer ' + t;
+    var o = body ? { method: 'POST', headers: h, body: JSON.stringify(body) } : { headers: h };
+    return fetch(SITE + path, o).then(function (r) {
+      return r.json().catch(function () { return { ok: false, message: 'Something went wrong. Try again.' }; }).then(function (j) {
+        if (r.status === 401 && t && path.indexOf('/api/account/signin') !== 0 && path.indexOf('/api/account/password') !== 0 && path.indexOf('/api/account/delete') !== 0) { leaveDemo(); location.replace('signin.html'); j.signedOut = true; }
+        if (r.status === 403 && !j.message) j.message = 'The site did not accept this request yet. Please try again later.';
+        if (r.status >= 400 && j.ok === undefined) j.ok = false;
+        return j;
+      });
+    }).catch(function () { return { ok: false, message: 'No connection right now. Try again when you are online.' }; });
+  });
+}
+var _api3 = api;
+api = function (path, body) {
+  return kv('token').then(function (t) {
+    if (!t || DEMO) return _api3(path, body);
+    var m = !body && path.match(/^\/api\/stay-(update|details)\?id=([^&]*)/);
+    if (m) {
+      var id = decodeURIComponent(m[2]);
+      if (m[1] === 'details') return acctCall('/api/account/stay?id=' + encodeURIComponent(id));
+      return acctCall('/api/account/me').then(function (d) {
+        if (d.signedOut || !d.me) return d.signedOut ? d : { ok: false, message: d.message || 'Something went wrong. Try again.' };
+        var s = (d.stays || []).filter(function (x) { return String(x.id) === id; })[0];
+        if (!s) return { ok: false, message: 'We could not find that stay on your account.' };
+        return { ok: true, id: s.id, name: d.me.name || s.name, apt: s.apt, start: s.start, end: s.end, status: s.status };
+      });
+    }
+    if (body && (path === '/api/stay-update' || path === '/api/stay-problem')) return Promise.resolve({ ok: false, message: 'Sending from your account is not connected yet. Please use Messages to reach Hannah.' });
+    return _api3(path, body);
+  });
+};
+// pick the stay the app opens on: the one happening now or next, else the newest
+function pickStay(stays) {
+  var n = new Date(), td = n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2);
+  var up = (stays || []).filter(function (x) { return x.end >= td; }).sort(function (a, b) { return a.start < b.start ? -1 : 1; });
+  return up[0] || (stays || [])[0] || null;
+}
+function profileFrom(me, old) {
+  var o = old || {}; var oth = (me.others || []).map(function (x) { return x.name || x.email || x.phone || ''; }).filter(Boolean).join(', ');
+  var pets = me.pets; if (Array.isArray(pets)) pets = pets.map(function (x) { return typeof x === 'string' ? x : (x.name || ''); }).join(', '); else if (pets && typeof pets === 'object') pets = pets.name || ''; else if (pets === true) pets = 'Yes'; else if (!pets) pets = '';
+  return { name: me.name || '', email: me.email || '', phone: me.phone || '', others: oth, pets: String(pets), nEmail: !(me.notify && me.notify.email === false), nPush: o.nPush !== false };
+}
+function leaveDemo() { LS.removeItem('demo'); ['stay', 'trip', 'safety', 'checks', 'profile', 'chat', 'token', 'rv_door', 'rv_wifi', 'rv_garage'].forEach(kvDel); }
 function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
 (function () {
   if (!DEMO) return;

@@ -4,20 +4,37 @@
 <span class="seeds" aria-hidden="true"><img class="seed s1" src="img/seed-green.svg" alt=""><img class="seed s3" src="img/seed.svg" alt=""><img class="seed s5" src="img/seed-blush.svg" alt=""><img class="seed s7" src="img/seed-green.svg" alt=""><img class="seed s6" src="img/seed-blush.svg" alt=""></span>
 <div class="mast" style="position:relative;z-index:1"><img class="wash" src="img/wash.webp" alt=""><div class="h">Hermitage</div><div class="s">House</div><div class="c">Chicago</div><div class="a">Andersonville</div></div>
 <p class="wc">Welcome home</p>
-<div class="card"><form id="f" novalidate><label for="e">Email you booked with</label><input id="e" type="email" autocomplete="email" inputmode="email"><label for="p">Password</label><input id="p" type="password" autocomplete="current-password">
+<div class="card"><form id="f" novalidate><label for="e">Email or phone you booked with</label><input id="e" type="text" autocomplete="username" autocapitalize="none" autocorrect="off"><label for="p">Password</label><input id="p" type="password" autocomplete="current-password">
 <p id="out" class="err" role="alert" style="margin-top:10px"></p>
-<div class="btnrow"><button type="submit" id="go">Sign in</button><button type="button" class="alt" id="mk">Create my password</button></div></form></div>
+<div class="btnrow"><button type="submit" id="go">Sign in</button><button type="button" class="alt" id="mk">Create or reset my password</button></div></form></div>
 <p class="note" style="text-align:center;margin-top:16px">Accounts are for guests who have booked with us.</p>
-<div class="card" style="margin-top:18px"><h3>Test version</h3><p class="note">Accounts are not connected yet. Any email and password signs you in to a sample stay so you can click around.</p></div>
+<div class="card" style="margin-top:18px"><h3>Just looking?</h3><p class="note">Look around the app with a sample stay. Nothing in it is real and nothing is sent.</p><button type="button" class="alt" id="sm">Look around with a sample stay</button></div>
 </div></main><script src="app.js"></script>
 <script>
 var out=document.getElementById('out');
-document.getElementById('f').onsubmit=function(ev){ev.preventDefault();
-  var e=document.getElementById('e').value.trim();out.className='err';
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)||!document.getElementById('p').value){out.textContent='Enter the email you booked with and your password.';return}
-  var b=document.getElementById('go');b.disabled=true;
-  LS.setItem('demo','1');
-  kvSet('stay',JSON.stringify({id:'demo',t:'demo'})).then(function(){kvSet('profile',JSON.stringify({email:e,name:'Sample Guest',phone:'',others:'',pets:'',nEmail:true,nPush:true})).then(function(){location.href='index.html'})});
+function val(){return document.getElementById('e').value.trim()}
+document.getElementById('f').onsubmit=function(ev){ev.preventDefault();out.className='err';
+  var e=val(),pw=document.getElementById('p').value;
+  if(!e||!pw){out.textContent='Enter the email or phone you booked with and your password.';return}
+  var b=document.getElementById('go');b.disabled=true;out.className='note';out.textContent='Signing in…';
+  acctCall('/api/account/signin',{login:e,password:pw,stay:true,client:'app'}).then(function(d){
+    if(!d.ok||!d.token){b.disabled=false;out.className='err';out.textContent=d.message||'That email or phone and password did not match.';return}
+    LS.removeItem('demo');
+    kvSet('token',d.token).then(function(){return acctCall('/api/account/me')}).then(function(m){
+      if(!m.me){b.disabled=false;out.className='err';out.textContent=m.message||'Something went wrong. Try again.';return}
+      var s=pickStay(m.stays);
+      if(!s){acctCall('/api/account/signout',{}).then(function(){leaveDemo();b.disabled=false;out.className='err';out.textContent='You are signed in, but there is no stay on this account yet. Please message Hannah.'});return}
+      kvSet('stay',JSON.stringify({id:String(s.id),t:'acct'})).then(function(){return kvSet('profile',JSON.stringify(profileFrom(m.me)))}).then(function(){location.href='index.html'});
+    });
+  });
 };
-document.getElementById('mk').onclick=function(){out.className='ok';out.textContent='In the finished app we email a link to the address you booked with, and you choose your password there. Not connected in this test.'};
+document.getElementById('mk').onclick=function(){
+  var e=val();out.className='err';
+  if(!e){out.textContent='Type the email you booked with above, then press this again.';return}
+  acctCall('/api/account/forgot',{login:e}).then(function(d){out.className=d.ok===false?'err':'ok';out.textContent=d.message||'If that email has a booking, we sent a link to choose your password.'});
+};
+document.getElementById('sm').onclick=function(){
+  LS.setItem('demo','1');
+  kvSet('stay',JSON.stringify({id:'demo',t:'demo'})).then(function(){kvSet('profile',JSON.stringify({email:'sample@example.com',name:'Sample Guest',phone:'',others:'',pets:'',nEmail:true,nPush:true})).then(function(){location.href='index.html'})});
+};
 </script></body></html>

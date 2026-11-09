@@ -20,29 +20,46 @@ function draw(p){
   box.appendChild(c);
   box.appendChild(el('h2','Notifications'));
   var n=el('div','','card');
-  function cb(label,on,key){var l=el('label','','ck');l.style.cssText='display:flex;gap:10px;align-items:center;margin:8px 0';var k=document.createElement('input');k.type='checkbox';k.checked=!!on;k.style.width='auto';k.onchange=function(){p[key]=k.checked;kvSet('profile',JSON.stringify(p)).then(function(){ok.textContent='Saved.'})};l.appendChild(k);l.appendChild(document.createTextNode(label));n.appendChild(l)}
+  function cb(label,on,key){var l=el('label','','ck');l.style.cssText='display:flex;gap:10px;align-items:center;margin:8px 0';var k=document.createElement('input');k.type='checkbox';k.checked=!!on;k.style.width='auto';k.onchange=function(){p[key]=k.checked;kvSet('profile',JSON.stringify(p)).then(function(){if(DEMO||key!=='nEmail'){ok.textContent='Saved.';return}acctCall('/api/account/profile',{notify:{email:k.checked}}).then(function(d){ok.className=d.ok===false?'err':'ok';ok.textContent=d.ok===false?(d.message||'Could not save. Try again.'):'Saved.'})})};l.appendChild(k);l.appendChild(document.createTextNode(label));n.appendChild(l)}
   var ok=el('p','','ok');
-  cb('Email me when I have a new message',p.nEmail,'nEmail');cb('Phone alert when I have a new message',p.nPush,'nPush');
+  cb('Email me when I have a new message',p.nEmail,'nEmail');cb('Phone alert when I have a new message (coming later)',p.nPush,'nPush');
   n.appendChild(el('p','We never put message text in an email. Texts are not offered yet.','note'));n.appendChild(ok);box.appendChild(n);
   if(DEMO){box.appendChild(el('h2','Test controls'));var tc=el('div','','card');var l=el('label','','ck');l.style.cssText='display:flex;gap:10px;align-items:center';var lk=document.createElement('input');lk.type='checkbox';lk.style.width='auto';lk.checked=LS.getItem('demoLocked')==='1';lk.onchange=function(){LS.setItem('demoLocked',lk.checked?'1':'0');['rv_door','rv_wifi','rv_garage'].forEach(kvDel)};l.appendChild(lk);l.appendChild(document.createTextNode('Pretend door code and Wi-Fi are not open yet'));tc.appendChild(l);box.appendChild(tc)}
   box.appendChild(el('h2','Your account'));
-  var so=el('button','Sign out','alt');so.onclick=function(){leaveDemo();location.href='index.html'};box.appendChild(so);
+  var so=el('button','Sign out','alt');so.onclick=function(){if(DEMO){leaveDemo();location.href='index.html'}else acctCall('/api/account/signout',{}).then(function(){leaveDemo();location.href='signin.html'})};box.appendChild(so);
   var d=el('a','Delete my account');d.href='#';d.style.cssText='display:block;margin-top:16px;color:#A33';
-  d.onclick=function(ev){ev.preventDefault();if(confirm('Delete your account? Your stay records and messages are kept by Hermitage House as booking records. This test only signs you out.')){leaveDemo();location.href='index.html'}};box.appendChild(d);
+  d.onclick=function(ev){ev.preventDefault();if(DEMO){if(confirm('This is the sample stay. Leave it?')){leaveDemo();location.href='signin.html'}return}delAcct()};box.appendChild(d);
 }
 function field(b,id,label,val,type){var l=el('label',label);l.htmlFor=id;b.appendChild(l);var i=document.createElement('input');i.id=id;i.value=val||'';if(type)i.type=type;b.appendChild(i);return i}
 function editProfile(p){openSheet('Edit your profile',function(b){
   var n=field(b,'n','Your name',p.name),em=field(b,'em','Email',p.email,'email'),ph=field(b,'ph','Phone',p.phone,'tel'),o=field(b,'o','Other guests with you',p.others),pt=field(b,'pt','Pets (name, type)',p.pets);
   var s=el('button','Save');s.style.marginTop='12px';var m=el('p','','ok');
-  s.onclick=function(){p.name=n.value;p.email=em.value;p.phone=ph.value;p.others=o.value;p.pets=pt.value;kvSet('profile',JSON.stringify(p)).then(function(){closeSheet();draw(p);var d=document.querySelector('.ok');if(d)d.textContent=''})};
-  b.appendChild(s);b.appendChild(m);b.appendChild(el('p','Test version: saved on this phone, not sent to Hannah yet.','note'))})}
+  s.onclick=function(){
+    var nv={name:n.value.trim(),email:em.value.trim(),phone:ph.value.trim(),others:o.value.trim(),pets:pt.value.trim()};
+    if(DEMO){Object.assign(p,nv);kvSet('profile',JSON.stringify(p)).then(function(){closeSheet();draw(p)});return}
+    var body={};['name','email','phone','pets'].forEach(function(k){if(nv[k]!==(p[k]||''))body[k]=nv[k]});
+    if(nv.others!==(p.others||''))body.others=nv.others?nv.others.split(/\s*(?:,|;| and )\s*/).filter(Boolean).map(function(x){return{name:x}}):[];
+    if(!Object.keys(body).length){closeSheet();return}
+    s.disabled=true;m.className='note';m.textContent='Saving…';
+    acctCall('/api/account/profile',body).then(function(d){
+      if(d.ok===false||d.signedOut){s.disabled=false;m.className='err';m.textContent=d.message||'Could not save. Try again.';return}
+      if(d.me)Object.assign(p,profileFrom(d.me,p));else Object.assign(p,nv);
+      kvSet('profile',JSON.stringify(p)).then(function(){closeSheet();draw(p)})});
+  };
+  b.appendChild(s);b.appendChild(m);if(DEMO)b.appendChild(el('p','Sample stay: saved on this phone only.','note'))})}
 function changePw(){openSheet('Change your password',function(b){
   var a=field(b,'cp','Current password','','password'),n=field(b,'np','New password','','password'),c=field(b,'cn','New password again','','password');
   var m=el('p','','err');var s=el('button','Save new password');s.style.marginTop='12px';
-  s.onclick=function(){if(!a.value||!n.value){m.textContent='Fill in all three boxes.';return}if(n.value.length<8){m.textContent='Use at least 8 characters.';return}if(n.value!==c.value){m.textContent='The two new passwords do not match.';return}m.className='ok';m.textContent='Done. (Test version: nothing was changed.)'};
+  s.onclick=function(){if(!a.value||!n.value){m.textContent='Fill in all three boxes.';return}if(n.value.length<8){m.textContent='Use at least 8 characters.';return}if(n.value!==c.value){m.textContent='The two new passwords do not match.';return}if(DEMO){m.className='ok';m.textContent='Done. (Sample stay: nothing was changed.)';return}s.disabled=true;m.className='note';m.textContent='Saving…';acctCall('/api/account/password',{current:a.value,password:n.value}).then(function(d){s.disabled=false;if(d.ok===false){m.className='err';m.textContent=d.message||'Could not change it. Check your current password.';return}m.className='ok';m.textContent='Done. Your password was changed.'})};
+  b.appendChild(s);b.appendChild(m)})}
+function delAcct(){openSheet('Delete my account',function(b){
+  b.appendChild(el('p','This removes your account and sign-in. Hermitage House keeps your stay record and messages as booking records. Type your password to confirm.'));
+  var pw=field(b,'dp','Password','','password'),m=el('p','','err');var s=el('button','Delete my account');s.style.cssText='margin-top:12px;background:#A33';
+  s.onclick=function(){if(!pw.value){m.textContent='Type your password.';return}s.disabled=true;acctCall('/api/account/delete',{password:pw.value}).then(function(d){if(d.ok===false){s.disabled=false;m.textContent=d.message||'Could not delete. Check your password.';return}leaveDemo();location.href='signin.html'})};
   b.appendChild(s);b.appendChild(m)})}
 kv('profile').then(function(v){
   if(!v){box.appendChild(el('p','Sign in to see and edit your details.'));var a=el('a','Sign in','btn');a.href='signin.html';box.appendChild(a);return}
-  draw(JSON.parse(v));
+  var pr=JSON.parse(v);draw(pr);
+  if(!DEMO)acctCall('/api/account/me').then(function(d){if(d.me){var np=profileFrom(d.me,pr);kvSet('profile',JSON.stringify(np));if(!document.querySelector('.sheet'))draw(np)}});
 });
 </script></body></html>

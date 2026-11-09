@@ -83,7 +83,7 @@ function leaveDemo() { LS.removeItem('demo'); ['stay', 'trip', 'safety', 'checks
 function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
 (function () {
   if (!DEMO) return;
-  var d = document.createElement('div'); d.style.cssText = 'background:#3A2A20;color:#F5EFE3;font:600 12px sans-serif;text-align:center;padding:6px;position:sticky;top:0;z-index:20';
+  var d = document.createElement('div'); d.style.cssText = 'background:#3A2A20;color:#F5EFE3;font:600 12px sans-serif;text-align:center;padding:calc(6px + env(safe-area-inset-top)) 6px 6px;margin-top:calc(-1 * env(safe-area-inset-top));position:sticky;top:0;z-index:20';
   d.textContent = 'Sample stay for testing. Nothing here is real or sent. ';
   var x = document.createElement('a'); x.textContent = 'Leave sample'; x.href = 'index.html'; x.style.color = '#EBD3CB'; x.onclick = leaveDemo; d.appendChild(x);
   document.addEventListener('DOMContentLoaded', function () { document.body.insertBefore(d, document.body.firstChild); });

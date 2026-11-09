@@ -185,3 +185,5 @@ go();document.addEventListener('DOMContentLoaded',go)})();
 // Visitor (not booked yet): details kept on this phone only, used to fill the request and message forms
 function vGet(){return kv('vprofile').then(function(v){try{return v?JSON.parse(v):{}}catch(e){return {}}})}
 function vSet(o){return kvSet('vprofile',JSON.stringify(o))}
+
+function avatar(n){var e=document.createElement('div');e.className='av';e.textContent=((n||'?').trim()[0]||'?').toUpperCase();return e}

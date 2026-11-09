@@ -20,7 +20,7 @@ function realChat(){
   function paint(d){
     box.innerHTML='';form.innerHTML='';
     if(d.archived){box.appendChild(el('p','This stay was cancelled. This conversation is saved with the stay\u2019s records.','note'))}
-    (d.items||[]).forEach(function(m){var mine=m.from==='guest';var b=el('div','','bub'+(mine?' me':''));if(!mine)b.appendChild(el('b',m.who||'Your host'));b.appendChild(el('div',m.text));
+    (d.items||[]).forEach(function(m){var mine=m.from==='guest';var b=el('div','','bub'+(mine?' me':''));if(!mine){var wh=el('div','','who2');wh.appendChild(avatar(m.who||'Your host'));wh.appendChild(el('b',m.who||'Your host'));b.appendChild(wh)}b.appendChild(el('div',m.text));
       var line=tm(m.at);
       if(mine){var r=Object.keys(m.reads||{}).filter(function(k){return k!=='guest'}).map(function(k){return k+', '+tmShort(m.reads[k])});line+=' \u00b7 '+(r.length?'Read by '+r.join(' and '):'Sent, not read yet')}
       b.appendChild(el('small',line));

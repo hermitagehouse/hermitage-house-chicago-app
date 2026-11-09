@@ -82,7 +82,7 @@ function party(wrap, l, d) {
     var P2 = dd.party || [];
     if (!P2.length) c.appendChild(el('p', dd.isBooker ? 'No one added yet. You can add people who are staying with you on this trip.' : 'The person who booked can add people to this stay.', 'note'));
     P2.forEach(function (p) {
-      var r = el('div', '', 'row'); var t = el('div'); t.appendChild(el('b', p.name)); var sub = [p.email, p.phone].filter(Boolean).join(' \u00b7 '); if (sub) t.appendChild(el('span', sub, 'note')); r.appendChild(t);
+      var r = el('div', '', 'row gst'); r.appendChild(avatar(p.name)); var t = el('div'); t.appendChild(el('b', p.name)); var sub = [p.email, p.phone].filter(Boolean).join(' \u00b7 '); if (sub) t.appendChild(el('span', sub, 'note')); r.appendChild(t);
       if (dd.isBooker) { var rm = el('button', 'Remove', 'alt'); rm.style.cssText = 'width:auto;padding:8px 14px'; rm.onclick = function () { if (!confirm('Remove ' + p.name + ' from this stay? They lose access at once.')) return; rm.disabled = true; acctCall('/api/account/guests', { id: l.id, action: 'remove', guestId: p.id }).then(function (r2) { if (r2.ok === false) { rm.disabled = false; alert(r2.message || 'Could not remove. Try again.'); return; } dd.party = r2.party || []; draw(dd); }); }; r.appendChild(rm); }
       c.appendChild(r);
     });

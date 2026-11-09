@@ -1,3 +1,5 @@
+@font-face{font-family:"Tinos";src:url(fonts/tinos-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Allura";src:url(fonts/allura-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Young Serif";src:url(fonts/young-serif-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Hanken Grotesk";src:url(fonts/hanken-grotesk-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Hanken Grotesk";src:url(fonts/hanken-grotesk-latin-500-normal.woff2) format("woff2");font-weight:500;font-display:swap}
@@ -18,9 +20,9 @@ a{color:var(--green);font-weight:600}
 /* masthead */
 .mast{position:relative;isolation:isolate;text-align:center;padding:30px 0 12px;margin-bottom:6px}
 .mast .wash{position:absolute;left:50%;top:6px;width:112%;max-width:640px;transform:translateX(-50%);z-index:-1;opacity:.9}
-.mast .h{font:400 44px/1 var(--display);letter-spacing:-.5px}
-.mast .s{font:400 38px/1 var(--display);font-style:italic;color:var(--soft);margin-top:-2px}
-.mast .c{font-size:12px;letter-spacing:.42em;text-transform:uppercase;margin-top:8px;padding-left:.42em;font-weight:500}
+.mast .h{font:400 58px/1 "Tinos","Liberation Serif","Times New Roman",serif;letter-spacing:0}
+.mast .s{font:400 52px/1 "Allura","Snell Roundhand","Brush Script MT",cursive;color:var(--ink);-webkit-text-stroke:1.2px var(--ink);opacity:.88;margin-top:-8px}
+.mast .c{font-size:12px;letter-spacing:.42em;text-transform:uppercase;margin-top:-6px;padding-left:.42em;font-weight:500}
 .mast .a{font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--soft);margin-top:22px}
 .hello{text-align:center;font-size:19px;line-height:1.5;margin:6px 12px 22px}
 /* photo tiles */

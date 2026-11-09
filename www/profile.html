@@ -22,8 +22,8 @@ function draw(p){
   var n=el('div','','card');
   function cb(label,on,key){var l=el('label','','ck');l.style.cssText='display:flex;gap:10px;align-items:center;margin:8px 0';var k=document.createElement('input');k.type='checkbox';k.checked=!!on;k.style.width='auto';k.onchange=function(){p[key]=k.checked;kvSet('profile',JSON.stringify(p)).then(function(){if(DEMO||key!=='nEmail'){ok.textContent='Saved.';return}acctCall('/api/account/profile',{notify:{email:k.checked}}).then(function(d){ok.className=d.ok===false?'err':'ok';ok.textContent=d.ok===false?(d.message||'Could not save. Try again.'):'Saved.'})})};l.appendChild(k);l.appendChild(document.createTextNode(label));n.appendChild(l)}
   var ok=el('p','','ok');
-  cb('Email me when I have a new message',p.nEmail,'nEmail');cb('Phone alert when I have a new message (coming later)',p.nPush,'nPush');
-  n.appendChild(el('p','We never put message text in an email. Texts are not offered yet.','note'));n.appendChild(ok);box.appendChild(n);
+  cb('Email me when I have a new message',p.nEmail,'nEmail');
+  n.appendChild(el('p','We never put message text in an email.','note'));n.appendChild(ok);box.appendChild(n);
   if(DEMO){box.appendChild(el('h2','Test controls'));var tc=el('div','','card');var l=el('label','','ck');l.style.cssText='display:flex;gap:10px;align-items:center';var lk=document.createElement('input');lk.type='checkbox';lk.style.width='auto';lk.checked=LS.getItem('demoLocked')==='1';lk.onchange=function(){LS.setItem('demoLocked',lk.checked?'1':'0');['rv_door','rv_wifi','rv_garage'].forEach(kvDel)};l.appendChild(lk);l.appendChild(document.createTextNode('Pretend door code and Wi-Fi are not open yet'));tc.appendChild(l);box.appendChild(tc)}
   box.appendChild(el('h2','Your account'));
   var so=el('button','Sign out','alt');so.onclick=function(){if(DEMO){leaveDemo();location.href='index.html'}else acctCall('/api/account/signout',{}).then(function(){leaveDemo();location.href='signin.html'})};box.appendChild(so);

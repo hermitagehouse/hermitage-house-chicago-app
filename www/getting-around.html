@@ -10,7 +10,6 @@ signedIn().then(function(ok){
          ['Groceries and food',[['Mariano\u2019s','8 min walk','Mariano\u2019s Chicago Clark St'],['Clark St restaurants','2 min walk','Clark Street Chicago Andersonville']]],
          ['Nearby',[['Wrigley Field','10 min by bike','Wrigley Field Chicago'],['Montrose Beach and MonDOG Beach','10 to 12 min drive','Montrose Beach Chicago']]]];
   L.forEach(function(g){box.appendChild(el('h2',g[0]));g[1].forEach(function(r){var a=el('a','','card');a.style.display='block';a.href='https://maps.apple.com/?daddr='+encodeURIComponent(r[2])+'&dirflg=w';a.appendChild(el('b',r[0]));a.appendChild(el('div',r[1]));a.onclick=function(ev){ev.preventDefault();var u='https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+encodeURIComponent(r[2]);if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};box.appendChild(a)})});
-  box.appendChild(el('p','Test version: times are the ones on our website. A drawn map comes later.','note'));
 });
 
 </script></body></html>

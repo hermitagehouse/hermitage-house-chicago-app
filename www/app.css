@@ -114,7 +114,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(-
 .sheet .x{position:absolute;top:8px;right:8px;z-index:3;width:44px;height:44px;min-height:44px;padding:0;border-radius:12px;background:#fff;color:var(--ink);font-size:26px;line-height:1;box-shadow:0 1px 6px rgba(58,42,32,.2);float:none}
 .sheet h2{margin-top:4px;padding-right:46px}
 /* hero + seeds shared by Home and Sign in */
-.hero{min-height:calc(100vh - 110px);display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;text-align:center}
+.hero{display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;text-align:center}
 .hero .mast{transform:scale(1.2);margin:0;position:relative;z-index:1}
 .hero .wc{font:400 26px var(--display);font-style:italic;color:var(--soft);margin-bottom:26px;position:relative;z-index:1}
 .hero .seeds{position:absolute;inset:0;z-index:0;pointer-events:none}

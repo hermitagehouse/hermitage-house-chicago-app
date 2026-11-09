@@ -1,25 +1,18 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Hermitage House Chicago</title><link rel="stylesheet" href="app.css">
 <style>
-.hero{height:calc(100vh - 110px);min-height:520px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;text-align:center}
-.hero .wc{font:400 26px var(--display);font-style:italic;color:var(--soft);margin-bottom:26px}
-.hero .mast{transform:scale(1.2);margin:0}
+.hero{padding:6px 0 18px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;text-align:center}
+.hero .wc{font:400 26px var(--display);font-style:italic;color:var(--soft);margin:12px 0 0}
+.hero .mast{margin:0}
 .hero .seeds{position:absolute;inset:0;z-index:0;pointer-events:none}
 .seed{position:absolute;width:var(--w,26px);opacity:.45;transform:rotate(var(--r,0deg));animation:drift var(--t,11s) ease-in-out infinite alternate}
 .seed[src*="seed-"]{opacity:.62}
-@keyframes drift{from{translate:0 0}to{translate:14px -10px}}
+@keyframes drift{from{translate:0 0}to{translate:26px 0}}
 @media (prefers-reduced-motion:reduce){.seed{animation:none}}
-.seed.s1{left:5%;top:8%;--w:30px;--r:-10deg;--t:12s}.seed.s2{left:70%;top:12%;--w:22px;--r:8deg;--t:10s}.seed.s3{left:88%;top:26%;--w:30px;--r:12deg;--t:13s}
-.seed.s4{left:5%;top:36%;--w:22px;--r:-6deg;--t:9s}.seed.s5{left:84%;top:50%;--w:26px;--r:9deg;--t:14s}.seed.s6{left:90%;top:72%;--w:20px;--r:14deg;--t:11s}
-.seed.s7{left:6%;top:62%;--w:28px;--r:-12deg;--t:12s}.seed.s8{left:14%;top:84%;--w:20px;--r:-4deg;--t:10s}.seed.s9{left:62%;top:70%;--w:18px;--r:-8deg;--t:13s}
-.d-mast{position:absolute;right:4%;bottom:96px;width:110px;opacity:.75;z-index:0;pointer-events:none}
-.hero .wc,.hero .mast{position:relative;z-index:1}.hero .cue{z-index:1}
-.lane{position:absolute;top:0;bottom:0;width:13%;overflow:hidden;pointer-events:none;z-index:0}.lane.l{left:0}.lane.r{right:0}
-.lane img{position:absolute;opacity:0;animation:rise linear infinite}
-@keyframes rise{0%{transform:translate(0,0) rotate(-8deg);opacity:0}12%{opacity:.6}50%{transform:translate(var(--sw,10px),-45vh) rotate(8deg)}88%{opacity:.5}100%{transform:translate(0,-92vh) rotate(-6deg);opacity:0}}
-@media (prefers-reduced-motion:reduce){.lane{display:none}}
-.cue{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--soft);text-decoration:none}
-.cue svg{display:block;margin:6px auto 0;width:26px;height:26px;fill:none;stroke:var(--green);stroke-width:2.5;animation:bob 1.4s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(9px)}}
+.seed.s1{left:5%;top:8%;--w:30px;--r:-10deg;--t:12s}.seed.s2{left:78%;top:12%;--w:22px;--r:8deg;--t:10s}.seed.s3{left:88%;top:26%;--w:30px;--r:12deg;--t:13s}
+.seed.s4{left:5%;top:36%;--w:22px;--r:-6deg;--t:9s}.seed.s5{left:84%;top:50%;--w:26px;--r:9deg;--t:14s}.seed.s6{left:93%;top:70%;--w:20px;--r:14deg;--t:11s}
+.seed.s7{left:2%;top:60%;--w:28px;--r:-12deg;--t:12s}.seed.s8{left:3%;top:84%;--w:20px;--r:-4deg;--t:10s}.seed.s9{left:92%;top:88%;--w:18px;--r:-8deg;--t:13s}
+.d-mast{position:absolute;right:1%;top:4px;width:80px;opacity:.75;z-index:0;pointer-events:none}
+.hero .wc,.hero .mast{position:relative;z-index:1}
 .map{position:relative;height:290px;border-radius:18px;overflow:hidden;background:#EAE8E1;border:1px solid rgba(0,0,0,.08)}.map svg{width:100%;height:100%}.map .am{position:absolute;left:10px;bottom:6px;font:600 11px sans-serif;color:#555}
 .pin{font:600 11px sans-serif}
 .lnks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.lnks a,.lnk a{text-align:center;padding:12px 6px;border-radius:14px;background:var(--blush);color:var(--ink);text-decoration:none;font-weight:600}
@@ -30,8 +23,8 @@
 #ev .row{flex-direction:column;align-items:flex-start;gap:0}#ev .row b{text-align:left;font-weight:500;color:var(--soft);font-size:14.5px}
 </style></head>
 <body><main>
-<div class="hero"><span class="seeds" aria-hidden="true"><img class="seed s1" src="img/seed-green.svg" alt=""><img class="seed s2" src="img/seed-blush.svg" alt=""><img class="seed s3" src="img/seed.svg" alt=""><img class="seed s4" src="img/seed-blush.svg" alt=""><img class="seed s5" src="img/seed-green.svg" alt=""><img class="seed s6" src="img/seed-blush.svg" alt=""><img class="seed s7" src="img/seed-green.svg" alt=""><img class="seed s8" src="img/seed.svg" alt=""><img class="seed s9" src="img/seed-blush.svg" alt=""></span><img class="d-mast" src="img/seeds.svg" alt=""><div class="wc" id="wc">Welcome home</div><div class="mast"><img class="wash" src="img/wash.webp" alt=""><div class="h">Hermitage</div><div class="s">House</div><div class="c">Chicago</div><div class="a">Andersonville</div></div>
-<a class="cue" href="#around" id="cue">Scroll for your trip<svg viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></a></div>
+<div class="hero"><span class="seeds" aria-hidden="true"><img class="seed s1" src="img/seed-green.svg" alt=""><img class="seed s2" src="img/seed-blush.svg" alt=""><img class="seed s3" src="img/seed.svg" alt=""><img class="seed s4" src="img/seed-blush.svg" alt=""><img class="seed s5" src="img/seed-green.svg" alt=""><img class="seed s6" src="img/seed-blush.svg" alt=""><img class="seed s7" src="img/seed-green.svg" alt=""><img class="seed s8" src="img/seed.svg" alt=""><img class="seed s9" src="img/seed-blush.svg" alt=""></span><img class="d-mast" src="img/seeds.svg" alt=""><div class="mast"><img class="wash" src="img/wash.webp" alt=""><div class="h">Hermitage</div><div class="s">House</div><div class="c">Chicago</div><div class="a">Andersonville</div></div><div class="wc" id="wc">Welcome home</div>
+</div>
 
 <h2 id="around">Getting around</h2>
 <div class="map"><svg viewBox="0 0 340 290"><rect width="340" height="290" fill="#EAE8E1"/><rect x="0" y="215" width="340" height="75" fill="#CFE3EE"/><rect x="190" y="130" width="70" height="60" fill="#D5E6C8"/>
@@ -53,8 +46,6 @@
 var LINKS=[['Red Line','/redline/'],['Brown Line','/brownline/'],['Metra','https://metra.com'],['Bus routes','/bus/']];
 LINKS.forEach(function(l){var a=el('a',l[0]);a.href='#';a.onclick=function(e){e.preventDefault();var u=l[1].indexOf('http')===0?l[1]:'https://www.transitchicago.com'+l[1];if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};document.getElementById('lnks').appendChild(a)});
 
-if(LS.getItem('seedStyle')==='B'){var hero=document.querySelector('.hero');['l','r'].forEach(function(side){var ln=el('div','','lane '+side);for(var i=0;i<4;i++){var im=document.createElement('img');im.src=['img/seed.svg','img/seed-blush.svg','img/seed-green.svg','img/seed.svg'][i];im.alt='';im.style.cssText='bottom:-40px;left:'+(8+(i*21)%50)+'%;width:'+(13+(i*5)%6)+'px;animation-duration:'+(20+i*4+(side==='r'?3:0))+'s;animation-delay:'+(-(i*5+(side==='r'?2:0)))+'s;--sw:'+((i%2?1:-1)*8)+'px';ln.appendChild(im)}hero.appendChild(ln)})}
-document.getElementById('cue').onclick=function(e){e.preventDefault();document.getElementById('around').scrollIntoView({behavior:'smooth'})};
 function D(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 function full(s){var d=D(s);return ['January','February','March','April','May','June','July','August','September','October','November','December'][d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()}
 function sheet(title,fill){openSheet(title,fill)}

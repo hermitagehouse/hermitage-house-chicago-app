@@ -1,25 +1,48 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Profile</title><link rel="stylesheet" href="app.css"></head>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Profile</title><link rel="stylesheet" href="app.css">
+<style>
+.who{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.tile-i{width:64px;height:64px;border-radius:16px;background:var(--blush);display:flex;align-items:center;justify-content:center;font:400 30px var(--display);color:var(--ink);flex:none}
+.who b{font:400 24px var(--display);display:block}.who span{color:var(--soft);font-size:15px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(58,42,32,.1)}.row span{color:var(--soft)}.row b{text-align:right;font-weight:500;word-break:break-word}
+</style></head>
 <body><main><h1>Profile</h1><div id="box"></div></main><script src="app.js"></script>
 <script>
-
 var box=document.getElementById('box');
-kv('profile').then(function(v){
-  if(!v){box.appendChild(el('p','Sign in to see and edit your details.'));var a=el('a','Sign in','btn');a.href='signin.html';box.appendChild(a);return}
-  var p=JSON.parse(v);
-  function f(id,label,val,type){var l=el('label',label);l.htmlFor=id;box.appendChild(l);var i=document.createElement('input');i.id=id;i.value=val||'';if(type)i.type=type;box.appendChild(i);return i}
-  var n=f('n','Your name',p.name),em=f('em','Email',p.email,'email'),ph=f('ph','Phone',p.phone,'tel'),o=f('o','Other guests with you',p.others),pt=f('pt','Pets (name, type)',p.pets);
+function draw(p){
+  box.innerHTML='';
+  var c=el('div','','card');
+  var w=el('div','','who');w.appendChild(el('div',((p.name||'?').trim()[0]||'?').toUpperCase(),'tile-i'));
+  var t=el('div');t.appendChild(el('b',p.name||'Your name'));t.appendChild(el('span',p.email||''));w.appendChild(t);c.appendChild(w);
+  function r(l,v){var d=el('div','','row');d.appendChild(el('span',l));d.appendChild(el('b',v||'Not added'));c.appendChild(d)}
+  r('Phone',p.phone);r('Other guests with you',p.others);r('Pets',p.pets);r('Password','••••••••');
+  var eb=el('button','Edit profile');eb.style.marginTop='14px';eb.onclick=function(){editProfile(p)};c.appendChild(eb);
+  var pb=el('button','Change password','alt');pb.onclick=function(){changePw()};c.appendChild(pb);
+  box.appendChild(c);
   box.appendChild(el('h2','Notifications'));
-  function cb(id,label,on){var l=el('label','','');l.style.cssText='display:flex;gap:10px;align-items:center;margin:8px 0';var c=document.createElement('input');c.type='checkbox';c.id=id;c.checked=!!on;c.style.width='auto';l.appendChild(c);l.appendChild(document.createTextNode(label));box.appendChild(l);return c}
-  var ce=cb('ne','Email me when I have a new message',p.nEmail),cp=cb('np','Phone alert when I have a new message',p.nPush);
-  box.appendChild(el('p','We never put message text in an email. Texts are not offered yet.','note'));
-  var s=el('button','Save');var ok=el('p','','ok');ok.style.marginTop='10px';box.appendChild(s);box.appendChild(ok);
-  s.onclick=function(){p.name=n.value;p.email=em.value;p.phone=ph.value;p.others=o.value;p.pets=pt.value;p.nEmail=ce.checked;p.nPush=cp.checked;kvSet('profile',JSON.stringify(p)).then(function(){ok.textContent='Saved on this phone. (Test version: not sent to Hannah yet.)'})};
-  if(DEMO){box.appendChild(el('h2','Test controls'));var lk=cb('lk','Pretend door code and Wi-Fi are not open yet',LS.getItem('demoLocked')==='1');lk.onchange=function(){LS.setItem('demoLocked',lk.checked?'1':'0');['rv_door','rv_wifi','rv_garage'].forEach(kvDel)}}
-  if(DEMO){var sb=cb('sb','Dandelion option B: little seeds also float up the side margins',LS.getItem('seedStyle')==='B');sb.onchange=function(){LS.setItem('seedStyle',sb.checked?'B':'A')}}
+  var n=el('div','','card');
+  function cb(label,on,key){var l=el('label','','ck');l.style.cssText='display:flex;gap:10px;align-items:center;margin:8px 0';var k=document.createElement('input');k.type='checkbox';k.checked=!!on;k.style.width='auto';k.onchange=function(){p[key]=k.checked;kvSet('profile',JSON.stringify(p)).then(function(){ok.textContent='Saved.'})};l.appendChild(k);l.appendChild(document.createTextNode(label));n.appendChild(l)}
+  var ok=el('p','','ok');
+  cb('Email me when I have a new message',p.nEmail,'nEmail');cb('Phone alert when I have a new message',p.nPush,'nPush');
+  n.appendChild(el('p','We never put message text in an email. Texts are not offered yet.','note'));n.appendChild(ok);box.appendChild(n);
+  if(DEMO){box.appendChild(el('h2','Test controls'));var tc=el('div','','card');var l=el('label','','ck');l.style.cssText='display:flex;gap:10px;align-items:center';var lk=document.createElement('input');lk.type='checkbox';lk.style.width='auto';lk.checked=LS.getItem('demoLocked')==='1';lk.onchange=function(){LS.setItem('demoLocked',lk.checked?'1':'0');['rv_door','rv_wifi','rv_garage'].forEach(kvDel)};l.appendChild(lk);l.appendChild(document.createTextNode('Pretend door code and Wi-Fi are not open yet'));tc.appendChild(l);box.appendChild(tc)}
   box.appendChild(el('h2','Your account'));
-  var so=el('button','Sign out','alt');so.style.marginTop='6px';so.onclick=function(){leaveDemo();location.href='index.html'};box.appendChild(so);
+  var so=el('button','Sign out','alt');so.onclick=function(){leaveDemo();location.href='index.html'};box.appendChild(so);
   var d=el('a','Delete my account');d.href='#';d.style.cssText='display:block;margin-top:16px;color:#A33';
   d.onclick=function(ev){ev.preventDefault();if(confirm('Delete your account? Your stay records and messages are kept by Hermitage House as booking records. This test only signs you out.')){leaveDemo();location.href='index.html'}};box.appendChild(d);
+}
+function field(b,id,label,val,type){var l=el('label',label);l.htmlFor=id;b.appendChild(l);var i=document.createElement('input');i.id=id;i.value=val||'';if(type)i.type=type;b.appendChild(i);return i}
+function editProfile(p){openSheet('Edit your profile',function(b){
+  var n=field(b,'n','Your name',p.name),em=field(b,'em','Email',p.email,'email'),ph=field(b,'ph','Phone',p.phone,'tel'),o=field(b,'o','Other guests with you',p.others),pt=field(b,'pt','Pets (name, type)',p.pets);
+  var s=el('button','Save');s.style.marginTop='12px';var m=el('p','','ok');
+  s.onclick=function(){p.name=n.value;p.email=em.value;p.phone=ph.value;p.others=o.value;p.pets=pt.value;kvSet('profile',JSON.stringify(p)).then(function(){closeSheet();draw(p);var d=document.querySelector('.ok');if(d)d.textContent=''})};
+  b.appendChild(s);b.appendChild(m);b.appendChild(el('p','Test version: saved on this phone, not sent to Hannah yet.','note'))})}
+function changePw(){openSheet('Change your password',function(b){
+  var a=field(b,'cp','Current password','','password'),n=field(b,'np','New password','','password'),c=field(b,'cn','New password again','','password');
+  var m=el('p','','err');var s=el('button','Save new password');s.style.marginTop='12px';
+  s.onclick=function(){if(!a.value||!n.value){m.textContent='Fill in all three boxes.';return}if(n.value.length<8){m.textContent='Use at least 8 characters.';return}if(n.value!==c.value){m.textContent='The two new passwords do not match.';return}m.className='ok';m.textContent='Done. (Test version: nothing was changed.)'};
+  b.appendChild(s);b.appendChild(m)})}
+kv('profile').then(function(v){
+  if(!v){box.appendChild(el('p','Sign in to see and edit your details.'));var a=el('a','Sign in','btn');a.href='signin.html';box.appendChild(a);return}
+  draw(JSON.parse(v));
 });
-
 </script></body></html>

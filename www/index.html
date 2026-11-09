@@ -33,7 +33,7 @@
 <h2>Weather during your stay</h2><div class="wx" id="wx"><p>Loading…</p></div><p id="wxn" style="font-size:13px;color:var(--soft)"></p>
 <h2>Events during your stay</h2><div class="card" id="ev"></div>
 </main>
-<script src="app.js"></script>
+<script src="app.js"></script><script src="map.js"></script>
 <script>
 var LINKS=[['Red Line','/redline/'],['Brown Line','/brownline/'],['Metra','https://metra.com'],['Bus routes','/bus/']];
 LINKS.forEach(function(l){var a=el('a',l[0]);a.href='#';a.onclick=function(e){e.preventDefault();var u=l[1].indexOf('http')===0?l[1]:'https://www.transitchicago.com'+l[1];if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};document.getElementById('lnks').appendChild(a)});
@@ -48,7 +48,7 @@ kv('stay').then(function(v){if(!v)return;var l=JSON.parse(v);var q='?id='+encode
  api('/api/stay-update'+q).then(function(d){
   if(!d.ok)return;
   var first=(d.name||'').split(' ')[0];if(first)document.getElementById('wc').textContent='Welcome home, '+first;
-  api('/api/stay-details'+q).then(function(det){
+  api('/api/stay-details'+q).then(function(det){ if(window.showRealMap)window.showRealMap(det&&det.address);
    var c=document.getElementById('stay');c.innerHTML='';
    function row(a,b){var r=el('div','','row');r.appendChild(el('span',a));r.appendChild(el('b',b));c.appendChild(r)}
    row('Check-in',full(d.start)+', 3:00 PM');row('Check-out',full(d.end)+', 11:00 AM');
@@ -85,4 +85,4 @@ function loadWeather(s,e){var a=D(s),z=D(e),now=new Date(),days=(a-now)/864e5,bo
   function nm(k){return k===0?'Clear':k<4?'Cloudy':k<50?'Fog':k<70?'Rain':k<80?'Snow':k<90?'Showers':'Storms'}
   for(var i=0;i<t.length;i+=step){var d=el('div'),dt=t[i].split('-');d.appendChild(el('span',MO[+dt[1]-1]+' '+(+dt[2])));d.appendChild(el('b',Math.round(m[i])+'°'));d.appendChild(el('span',nm(c[i])));box.appendChild(d)}
   note.textContent=fut?'Forecast for your dates.':'Your stay is further out than a forecast reaches, so this is what the same dates looked like last year.'}).catch(function(){box.innerHTML='';note.textContent='Weather could not load right now.'})}
-</script></body></html>
+</script><script>setTimeout(function(){if(window.showRealMap)window.showRealMap(null)},8000)</script></body></html>

@@ -50,7 +50,7 @@ if(!DEMO){realChat();
          ['me','Thank you! We land around 2. Is early drop-off for bags okay?','Jan 8, 3:20 PM','Read by Hannah, Vlad'],
          ['Vlad','Yes, bags are fine. Text or message when you are close.','Jan 8, 4:05 PM','Read by you']];
   var box=el('div');chat.appendChild(box);
-  function add(m){var b=el('div','','bub'+(m[0]==='me'?' me':''));if(m[0]!=='me')b.appendChild(el('b',m[0]));b.appendChild(el('div',m[1]));b.appendChild(el('small',m[2]+' \u00b7 '+m[3]));box.appendChild(b)}
+  function add(m){var b=el('div','','bub'+(m[0]==='me'?' me':''));if(m[0]!=='me'){var wh=el('div','','who2');wh.appendChild(avatar(m[0]));wh.appendChild(el('b',m[0]));b.appendChild(wh)}b.appendChild(el('div',m[1]));b.appendChild(el('small',m[2]+' \u00b7 '+m[3]));box.appendChild(b)}
   M.forEach(add);
   chat.appendChild(el('textarea','','')).id='t';var t=document.getElementById('t');t.rows=3;t.placeholder='Write a message';t.style.marginTop='12px';
   var s=el('button','Send');s.style.marginTop='8px';chat.appendChild(s);

@@ -61,7 +61,7 @@ function drawVisitor(){
   box.innerHTML='';
   vGet().then(function(v){
     var c=el('div','','card');c.appendChild(el('h3','Your details'));
-    c.appendChild(el('p','Saved on this phone only. We use them to fill in your request and your messages so you don\u2019t type them again.','note'));
+    c.appendChild(el('p','Saved on this phone only. We don\u2019t see these until you send a request or a message.','note'));
     var n=field(c,'vn','Your name',v.name),e=field(c,'ve','Email',v.email,'email'),ph=field(c,'vp','Phone',v.phone,'tel');
     var s=el('button','Save');s.style.marginTop='12px';var m=el('p','','ok');
     s.onclick=function(){vSet({name:n.value.trim(),email:e.value.trim(),phone:ph.value.trim()}).then(function(){m.textContent='Saved on this phone.'})};
@@ -69,7 +69,7 @@ function drawVisitor(){
     box.appendChild(el('h2','Your account'));
     box.appendChild(el('p','When you book a stay with us, your account is made for you. You sign in with the email or phone on the booking, and your stay, messages and door code appear here.','note'));
     var si=el('button','I have a booking: sign in','alt');si.onclick=function(){LS.removeItem('visitor');location.href='signin.html'};box.appendChild(si);
-    var d=el('a','Clear my details from this phone');d.href='#';d.style.cssText='display:block;margin-top:16px';d.onclick=function(ev){ev.preventDefault();kvDel('vprofile');LS.removeItem('visitor');location.href='signin.html'};box.appendChild(d)})}
+    var d=el('a','Clear my details from this phone');d.href='#';d.style.cssText='display:block;margin-top:16px';d.onclick=function(ev){ev.preventDefault();kvDel('vprofile');LS.removeItem('visitor');location.href='signin.html'};box.appendChild(d);box.appendChild(el('p','This removes them from this phone. Anything you already sent us stays with your request or message.','note'))})}
 kv('stay').then(function(st){ if(!st&&LS.getItem('visitor')==='1'){drawVisitor();return} loadProfile() });
 function loadProfile(){
 kv('profile').then(function(v){

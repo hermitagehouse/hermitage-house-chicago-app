@@ -84,14 +84,15 @@ function party(wrap, l, d) {
   if (!wrap) return; var c = el('div'); wrap.appendChild(c);
   function draw(dd) {
     c.textContent = '';
-    var P2 = dd.party || [];
+    var P2 = dd.party || [], rmBox = el('div');
     if (!P2.length) c.appendChild(el('p', dd.isBooker ? 'No one added yet. You can add people who are staying with you on this trip.' : 'The person who booked can add people to this stay.', 'note'));
     P2.forEach(function (p) {
       var r = el('div', '', 'row gst'); r.style.flexWrap = 'wrap'; var av = avatar(p.name); av.style.flex = '0 0 auto'; r.appendChild(av); var t = el('div'); t.style.cssText = 'min-width:0;flex:1 1 150px'; var nb = el('b', p.name); nb.style.display = 'block'; t.appendChild(nb); [p.email, p.phone].filter(Boolean).forEach(function (v) { var sp = el('span', v, 'note'); sp.style.cssText = 'display:block;overflow-wrap:anywhere;margin:0'; t.appendChild(sp); }); r.appendChild(t);
-      if (dd.isBooker) { var rm = el('a', 'Remove'); rm.href = '#'; rm.style.cssText = 'flex:0 0 auto;font-size:14px;margin-left:auto;padding:6px 0 6px 8px'; rm.onclick = function (ev) { ev.preventDefault(); if (rm.dataset.busy) return; if (!confirm('Remove ' + p.name + ' from this stay? They lose access at once.')) return; rm.dataset.busy = '1'; acctCall('/api/account/guests', { id: l.id, action: 'remove', guestId: p.id }).then(function (r2) { if (r2.ok === false) { delete rm.dataset.busy; alert(r2.message || 'Could not remove. Try again.'); return; } dd.party = r2.party || []; draw(dd); }); }; r.appendChild(rm); }
+      if (dd.isBooker) { var rm = el('a', 'Remove ' + (String(p.name || '').split(' ')[0] || 'this person')); rm.href = '#'; rm.style.cssText = 'display:block;font-size:14px;padding:8px 0 0'; rm.onclick = function (ev) { ev.preventDefault(); if (rm.dataset.busy) return; if (!confirm('Remove ' + p.name + ' from this stay? They lose access at once.')) return; rm.dataset.busy = '1'; acctCall('/api/account/guests', { id: l.id, action: 'remove', guestId: p.id }).then(function (r2) { if (r2.ok === false) { delete rm.dataset.busy; alert(r2.message || 'Could not remove. Try again.'); return; } dd.party = r2.party || []; draw(dd); }); }; rmBox.appendChild(rm); }
       c.appendChild(r);
     });
     if (dd.isBooker && dd.canAddGuests) { var ab = el('button', 'Add a person', 'alt'); ab.style.marginTop = '10px'; ab.onclick = function () { addPerson(l, dd, draw); }; c.appendChild(ab); }
+    c.appendChild(rmBox);
     c.appendChild(el('p', 'Only people staying on this trip, 18 or older. Everyone on the stay sees its dates, address, entry codes, Wi-Fi and messages.', 'note'));
   }
   draw(d);

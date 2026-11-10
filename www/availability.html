@@ -58,9 +58,10 @@ function cls(k){
   var turn=c==='open'&&(GUEST[sh(k,-1)]?'after':(GUEST[sh(k,1)]?'before':''));
   if(turn&&!(S0&&!E0&&k>S0&&turn==='before'))c='taken';
   return c}
+var SHOWN=6;
 function draw(){
   calBox.innerHTML='';var NM=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  for(var k=0;k<24;k++){
+  for(var k=0;k<SHOWN;k++){
     var m=new Date(BASE.getFullYear(),BASE.getMonth()+k,1),mo=el('div','','mo');
     mo.appendChild(el('h3',NM[m.getMonth()]+' '+m.getFullYear()));
     var g=el('div','','cal');['S','M','T','W','T','F','S'].forEach(function(x){g.appendChild(el('i',x))});
@@ -73,6 +74,7 @@ function draw(){
       if(open&&S0&&key===S0)b.className='sel';else if(E0&&key===E0&&c!=='past')b.className='out';else if(open&&S0&&E0&&key>S0&&key<E0)b.className='rng';
       b.onclick=function(){if(open||(E0&&key===E0))pick(key)};g.appendChild(b)})(dd)}
     mo.appendChild(g);calBox.appendChild(mo)}
+  if(SHOWN<24){var more=el('button','Show 6 more months','alt');more.type='button';more.style.marginTop='14px';more.onclick=function(){var y=document.documentElement.scrollTop||document.body.scrollTop;SHOWN=Math.min(24,SHOWN+6);draw();window.scrollTo(0,y)};calBox.appendChild(more)}
 }
 function pick(k){
   if(!S0||E0||k<=S0){S0=k;E0=null;return upd()}

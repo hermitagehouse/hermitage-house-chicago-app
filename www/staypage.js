@@ -144,7 +144,9 @@ function details(l, st) {
         dd.appendChild(el('p', "These are for your stay only. Please don't share the door code or the Wi-Fi password.", 'note'));
       }
       var HOUSE = d.houseNotes || [['Trash and recycling', 'Pickup is on Thursdays. The bins are to the left of the garage when you walk out the gate to the alley.'], ['Laundry', 'The laundry room is on the first floor, with two washers and two dryers.'], ['Extra paper products', 'To the left of the dryers, by the door leading to the backyard.']];
-      [['Parking', d.parkingNote], ['Fire extinguisher', d.extinguisher]].forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
+      // the times and the door code are shown above; keep only what else the check-in text says (for example the floor)
+      var rest = String(d.checkInSteps || '').replace(/Check-in is at [^.]*\.\s*/i, '').replace(/Your door code is [^()]*\([^)]*\)\.?\s*/i, '').trim();
+      [['Check-in', rest], ['Parking', d.parkingNote], ['Fire extinguisher', d.extinguisher]].forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
       HOUSE.forEach(function (x) { if (x && !Array.isArray(x)) x = [x.title, x.text]; if (!x || !x[1]) return; var r = el('p', '', 'kv'); r.style.cssText = 'display:block'; var k = el('strong', x[0]); k.style.cssText = 'display:block;margin-bottom:2px'; var v = el('span', x[1]); v.style.cssText = 'display:block;text-align:left'; r.appendChild(k); r.appendChild(v); dd.appendChild(r); });
       if (ACCT) { var pl2 = el('p', 'People staying with you', 'note'); pl2.style.cssText = 'margin:14px 0 2px;font-weight:600'; dd.appendChild(pl2); pHome = el('div'); dd.appendChild(pHome); }
     } else {

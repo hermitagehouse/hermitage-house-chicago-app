@@ -18,7 +18,7 @@ details.cf{margin:8px 0}details.cf summary{cursor:pointer;font-weight:600}
 .rstrip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}.rstrip::-webkit-scrollbar{display:none}
 .rstrip figure{margin:0;flex:0 0 100%;scroll-snap-align:start;position:relative;height:240px;background:#eadfca}.rstrip img{width:100%;height:100%;object-fit:cover;display:block}
 .rstrip figcaption{position:absolute;left:10px;bottom:10px;background:rgba(58,42,32,.72);color:#fff;font-size:13px;padding:3px 10px;border-radius:12px}
-.aptcard .tx{padding:14px 16px 16px}.aptcard h3{margin:0 0 8px}.dots{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding:0}.dots span{font-size:13.5px;background:#f0e9dc;border-radius:12px;padding:4px 10px}
+.aptcard .tx{padding:14px 16px 16px}.aptcard h3{margin:0 0 8px}.dots{margin:0 0 12px;padding:0;font-size:15px;line-height:1.55;color:var(--soft)}
 .aptcard .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}.aptcard .two button{margin:0}
 .swh{font-size:12.5px;color:var(--soft);margin:6px 16px 0}
 .pbar{margin:4px 0 8px}.pbar strong{font:400 30px var(--display);display:block;line-height:1.1}.pbar .per{font-size:15px;color:var(--soft)}.pbar small{display:block;color:var(--ink);opacity:.8;margin:4px 0;font-size:13.5px}
@@ -232,7 +232,7 @@ var APTS=[
   var c=el('article','','aptcard'),st=el('div','','rstrip');st.setAttribute('role','group');st.setAttribute('aria-label','Rooms in '+x.t+', swipe to see more');
   x.pics.forEach(function(p){var f=el('figure'),i=document.createElement('img');i.src='img/apts/'+p[0]+'.jpg';i.alt=p[2];i.loading='lazy';f.appendChild(i);f.appendChild(el('figcaption',p[1]));st.appendChild(f)});
   c.appendChild(st);c.appendChild(el('p','Swipe for more rooms','swh'));
-  var tx=el('div','','tx');tx.appendChild(el('h3',x.t));var fp=el('p','','fp');fp.id='fp'+x.n;tx.appendChild(fp);var d=el('p','','dots');x.dots.forEach(function(t){d.appendChild(el('span',t))});tx.appendChild(d);
+  var tx=el('div','','tx');tx.appendChild(el('h3',x.t));var fp=el('p','','fp');fp.id='fp'+x.n;tx.appendChild(fp);var d=el('p',x.dots.join(' \u00b7 '),'dots');tx.appendChild(d);
   var two=el('div','','two'),look=el('button','Take a look','alt'),chk=el('button','Check dates');
   look.onclick=function(){openSite(x.url)};
   chk.onclick=function(){document.getElementById('a'+x.n).click();document.getElementById('cal').scrollIntoView({behavior:'smooth'})};

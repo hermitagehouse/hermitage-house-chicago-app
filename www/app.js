@@ -61,7 +61,7 @@ api = function (path, body) {
         if (d.signedOut || !d.me) return d.signedOut ? d : { ok: false, message: d.message || 'Something went wrong. Try again.' };
         var s = (d.stays || []).filter(function (x) { return String(x.id) === id; })[0];
         if (!s) return { ok: false, message: 'We could not find that stay on your account.' };
-        return { ok: true, id: s.id, name: d.me.name || s.name, apt: s.apt, start: s.start, end: s.end, status: s.status };
+        return { ok: true, id: s.id, name: d.me.name || s.name, apt: s.apt, start: s.start, end: s.end, status: s.status, guests: s.guests, pets: s.pets, garage: s.garage };
       });
     }
     if (body && (path === '/api/stay-update' || path === '/api/stay-problem')) { var b2 = Object.assign({}, body); delete b2.t; return acctCall(path, b2); }

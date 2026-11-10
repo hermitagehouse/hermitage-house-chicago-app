@@ -162,7 +162,7 @@ function details(l, st) {
     var t = d.terms && d.terms.words;
     if (t && CAN) {
       CAN.appendChild(el('h2', 'Cancellation terms for this stay'));
-      var cc = el('div', '', 'card'); cc.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + '.'));
+      var cc = el('div', '', 'card'); cc.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + (/[.!?]$/.test(t.trim()) ? '' : '.')));
       if (!d.terms.offsite) cc.appendChild(el('p', 'This is a short version. The full cancellation policy is the one that applies.', 'note'));
       var pl = el('a', 'Read the full cancellation policy'); pl.href = '#'; pl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; cc.appendChild(pl); CAN.appendChild(cc);
     }
@@ -173,7 +173,7 @@ function show(l, d) { kv('token').then(function (t) { ACCT = !!t && !DEMO; show0
 function show0(l, d) {
   S = l; clear(); if (window.onStay) window.onStay(d); kvSet('trip', JSON.stringify({ first: String(d.name || '').split(' ')[0], apt: d.apt, start: d.start, end: d.end }));
   var hero = el('div', '', 'tile tall'); var him = document.createElement('img'); him.src = d.apt == '2' ? 'img/apt2.jpg' : 'img/apt1.jpg'; him.alt = ''; hero.appendChild(him);
-  var ht = el('div', '', 't'); ht.appendChild(el('b', 'Apartment ' + d.apt)); ht.appendChild(el('span', us(d.start) + ' to ' + us(d.end) + (d.guests ? ' \u00b7 ' + d.guests + (d.guests == 1 ? ' guest' : ' guests') : '') + (d.pets ? ', pets' : '') + (d.garage ? ', garage' : ''))); hero.appendChild(ht); box.appendChild(hero);
+  var ht = el('div', '', 't'); ht.appendChild(el('b', 'Apartment ' + d.apt)); ht.appendChild(el('span', us(d.start) + ' - ' + us(d.end) + (d.guests ? ' \u00b7 ' + d.guests + (d.guests == 1 ? ' guest' : ' guests') : '') + (d.pets ? ', pets' : '') + (d.garage ? ', garage' : ''))); hero.appendChild(ht); box.appendChild(hero);
   var days = Math.ceil((new Date(d.start.replace(/-/g, '/')) - new Date()) / 864e5); var out = Math.ceil((new Date(d.end.replace(/-/g, '/')) - new Date()) / 864e5); var cd = el('p', days > 1 ? days + ' days until check-in.' : days === 1 ? 'Check-in is tomorrow.' : days === 0 ? 'Check-in is today.' : out > 1 ? out + ' days until checkout.' : out === 1 ? 'Checkout is tomorrow.' : out === 0 ? 'Checkout is today.' : 'Welcome home.', 'note'); cd.style.cssText = 'text-align:center;margin:10px 0 0;font-family:var(--display);font-size:18px'; box.appendChild(cd);
   details(l, d);
   if (box2) box = box2;

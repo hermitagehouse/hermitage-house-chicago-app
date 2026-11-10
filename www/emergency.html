@@ -59,7 +59,7 @@
 <script src="app.js"></script>
 <script>
 kv("stay").then(function(st){if(st)document.getElementById("addr").textContent="Your address shows here while you have a stay booked with us."});
-kv("safety").then(function(v){if(!v)return;var s=JSON.parse(v);if(s.address){var a=document.getElementById("addr");a.textContent="";a.appendChild(el("strong",s.address))}if(s.extinguisher)document.getElementById("fire").textContent+=" The fire extinguisher is "+s.extinguisher+"."})
+kv("safety").then(function(v){if(!v)return;var s=JSON.parse(v);if(s.address){var a=document.getElementById("addr");a.textContent="";a.appendChild(el("strong",s.address))}if(s.extinguisher){var x=String(s.extinguisher).trim().replace(/[.\s]+$/,"");document.getElementById("fire").textContent+=" Fire extinguisher: "+x+"."}})
 </script>
 </body>
 </html>

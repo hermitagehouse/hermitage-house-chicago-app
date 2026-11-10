@@ -10,6 +10,7 @@ function checkItems(d) {
   return a;
 }
 function firstTime(t) { var m = /\b(\d{1,2}(?::\d{2})?)\s?([ap])\.?m\b/i.exec(String(t || '')); return m ? m[1] + m[2].toLowerCase() + 'm' : ''; }
+function drop(title) { var d = document.createElement('details'); d.className = 'dd'; var sm = document.createElement('summary'); sm.textContent = title; d.appendChild(sm); return d; }
 function clear() { box = box0; box.textContent = ''; if (box2) box2.textContent = ''; }
 function parseLink(txt) { try { var u = new URL(txt.trim()); var id = u.searchParams.get('id'), t = u.searchParams.get('t'); return id && t ? { id: id, t: t } : null; } catch (e) { return null; } }
 function entry(msg) {
@@ -68,8 +69,8 @@ function remind(d) {
 }
 function checklist(d) {
   CHECK = checkItems(d);
-  box.appendChild(el('h2', 'Checkout checklist'));
-  var cards = el('div', '', 'card'); box.appendChild(cards);
+  var cdd = drop('Checkout instructions'); cdd.classList.add('solo'); box.appendChild(cdd);
+  var cards = el('div'); cdd.appendChild(cards);
   kv('checks').then(function (v) {
     var done = v ? JSON.parse(v) : [];
     function draw() {
@@ -126,79 +127,48 @@ function details(l) {
     var tr = el('div', '', 'times'); tr.style.cssText = 'display:flex;gap:10px;margin-bottom:10px';
     [['Check-in', ci], ['Checkout', co]].forEach(function (x) { var h = el('div'); h.style.cssText = 'flex:1;background:#fff;border-radius:14px;padding:10px;text-align:center'; var lb = el('span', x[0]); lb.style.cssText = 'display:block;font-size:13px'; var bb = el('b', x[1]); bb.style.cssText = 'display:block;font-size:18px'; h.appendChild(lb); h.appendChild(bb); tr.appendChild(h); });
     c.appendChild(tr);
-    if (open) {
-      [['Address', d.address], ['Door code', d.doorCode], ['Wi-Fi', d.wifiName], ['Wi-Fi password', d.wifiPassword]].forEach(function (x) { var r = row(x[0], x[1]); if (r) c.appendChild(r); });
-      c.appendChild(el('p', "These are for your stay only. Please don't share the door code or the Wi-Fi password.", 'note'));
-    } else c.appendChild(el('p', 'Your check-in details show here the day before you arrive.'));
+    var ar = row('Address', d.address); if (ar) c.appendChild(ar);
+    var dd = drop('More check-in details'); c.appendChild(dd);
+    if (d.doorCode || d.wifiName || d.wifiPassword) {
+      [['Door code', d.doorCode], ['Wi-Fi', d.wifiName], ['Wi-Fi password', d.wifiPassword]].forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
+      dd.appendChild(el('p', "These are for your stay only. Please don't share the door code or the Wi-Fi password.", 'note'));
+    } else dd.appendChild(el('p', 'Your door code and Wi-Fi show here from 3:00pm the day before you arrive.', 'note'));
     var HOUSE = d.houseNotes || [['Trash and recycling', 'Pickup is on Thursdays. The bins are to the left of the garage when you walk out the gate to the alley.'], ['Laundry', 'The laundry room is on the first floor, with two washers and two dryers.'], ['Extra paper products', 'To the left of the dryers, by the door leading to the backyard.']];
     var rows = [['Parking', d.parkingNote]];
     if (d.garageCode) rows.push(['Garage code', d.garageCode + ', then press the home button on the panel.']);
     rows.push(['Fire extinguisher', d.extinguisher]);
-    rows.forEach(function (x) { var r = row(x[0], x[1]); if (r) c.appendChild(r); });
-    HOUSE.forEach(function (x) { if (!x || !x[1]) return; var r = el('p', '', 'kv'); r.style.cssText = 'display:block'; var k = el('strong', x[0]); k.style.cssText = 'display:block;margin-bottom:2px'; var v = el('span', x[1]); v.style.cssText = 'display:block;text-align:left'; r.appendChild(k); r.appendChild(v); c.appendChild(r); });
+    rows.forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
+    HOUSE.forEach(function (x) { if (!x || !x[1]) return; var r = el('p', '', 'kv'); r.style.cssText = 'display:block'; var k = el('strong', x[0]); k.style.cssText = 'display:block;margin-bottom:2px'; var v = el('span', x[1]); v.style.cssText = 'display:block;text-align:left'; r.appendChild(k); r.appendChild(v); dd.appendChild(r); });
     wrap.appendChild(c);
     var emb = document.getElementById('emb'); if (emb) wrap.appendChild(emb);
     if (ACCT) {
       if (d.isBooker && RQ && !RQ.firstChild) { request('change', RQD, RQ); request('cancel', RQD, RQ); }
       if (!d.isBooker && RQ) RQ.appendChild(el('p', 'Only the person who booked can change or cancel this stay.', 'note'));
-      party(wrap, l, d);
+      party(PARTY || wrap, l, d);
     }
     kvSet('safety', JSON.stringify({ address: d.address || '', extinguisher: d.extinguisher || '' }));
     var t = d.terms && d.terms.words;
-    wrap.appendChild(el('h2', 'Cancellation'));
-    if (t) { var cc = el('div', '', 'card'); cc.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + '.')); cc.appendChild(el('p', 'This is a short version. The full cancellation policy is the one that applies.', 'note')); wrap.appendChild(cc); }
+    if (t && CAN) { var cd2 = drop('Cancellation terms for this stay'); cd2.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + '.')); cd2.appendChild(el('p', 'This is a short version. The full cancellation policy is the one that applies.', 'note')); CAN.appendChild(cd2); }
   });
 }
-// shrink and re-save the photo as a plain JPEG so the place it was taken (GPS) is not sent
-function clean(file) {
-  return new Promise(function (res, rej) {
-    var img = new Image(), u = URL.createObjectURL(file);
-    img.onload = function () {
-      var k = Math.min(1, 1600 / Math.max(img.width, img.height)), cv = document.createElement('canvas');
-      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
-      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u);
-      res(cv.toDataURL('image/jpeg', 0.8).split(',')[1]);
-    };
-    img.onerror = function () { rej(); }; img.src = u;
-  });
-}
-function problem() {
-  var wrap = el('div'), b = el('button', 'Report a problem', 'alt'), form = el('div'); form.hidden = true;
-  form.appendChild(el('label', 'What is the problem?')); var n = el('textarea'); n.rows = 4; n.maxLength = 900; form.appendChild(n);
-  form.appendChild(el('label', 'Add one photo (optional)')); var f = el('input'); f.type = 'file'; f.accept = 'image/*'; form.appendChild(f);
-  form.appendChild(el('p', 'Your note and the one photo you choose are emailed to Hannah. The photo is re-saved without its location.', 'note'));
-  var go = el('button', 'Send report'); form.appendChild(go); var m = el('p', '', 'err'); form.appendChild(m);
-  b.onclick = function () { form.hidden = !form.hidden; };
-  go.onclick = function () {
-    if (!n.value.trim()) { m.textContent = 'Tell Hannah what is wrong.'; return; }
-    go.disabled = true;
-    var done = function (photo) {
-      var body = { id: S.id, t: S.t, note: n.value }; if (photo) body.photo = { type: 'image/jpeg', data: photo };
-      api('/api/stay-problem', body).then(function (r) { if (r.ok) { wrap.textContent = ''; wrap.appendChild(el('p', 'Sent. Hannah received your report on ' + stamp() + '.', 'ok')); } else { go.disabled = false; m.textContent = r.message || 'Try again.'; } });
-    };
-    if (f.files && f.files[0]) clean(f.files[0]).then(done, function () { go.disabled = false; m.textContent = 'That photo could not be read. Try another, or send without it.'; }); else done(null);
-  };
-  wrap.appendChild(b); wrap.appendChild(form); box.appendChild(wrap);
-}
-var ACCT = false, RQ = null, RQD = null;
+var ACCT = false, RQ = null, RQD = null, CAN = null, PARTY = null;
 function show(l, d) { kv('token').then(function (t) { ACCT = !!t && !DEMO; show0(l, d); }); }
 function show0(l, d) {
   S = l; clear(); if (window.onStay) window.onStay(d); kvSet('trip', JSON.stringify({ first: String(d.name || '').split(' ')[0], apt: d.apt, start: d.start, end: d.end }));
   var hero = el('div', '', 'tile tall'); var him = document.createElement('img'); him.src = d.apt == '2' ? 'img/apt2.jpg' : 'img/apt1.jpg'; him.alt = ''; hero.appendChild(him);
   var ht = el('div', '', 't'); ht.appendChild(el('b', 'Apartment ' + d.apt)); ht.appendChild(el('span', us(d.start) + ' to ' + us(d.end) + (d.guests ? ' \u00b7 ' + d.guests + (d.guests == 1 ? ' guest' : ' guests') : '') + (d.pets ? ', pets' : '') + (d.garage ? ', garage' : ''))); hero.appendChild(ht); box.appendChild(hero);
-  var days = Math.ceil((new Date(d.start.replace(/-/g, '/')) - new Date()) / 864e5); var cd = el('p', days > 1 ? days + ' days until check-in.' : days === 1 ? 'Check-in is tomorrow.' : days === 0 ? 'Check-in is today.' : 'Welcome home.', 'note'); cd.style.cssText = 'text-align:center;margin:10px 0 0;font-family:var(--display);font-size:18px'; box.appendChild(cd);
+  var days = Math.ceil((new Date(d.start.replace(/-/g, '/')) - new Date()) / 864e5); var out = Math.ceil((new Date(d.end.replace(/-/g, '/')) - new Date()) / 864e5); var cd = el('p', days > 1 ? days + ' days until check-in.' : days === 1 ? 'Check-in is tomorrow.' : days === 0 ? 'Check-in is today.' : out > 1 ? out + ' days until checkout.' : out === 1 ? 'Checkout is tomorrow.' : out === 0 ? 'Checkout is today.' : 'Welcome home.', 'note'); cd.style.cssText = 'text-align:center;margin:10px 0 0;font-family:var(--display);font-size:18px'; box.appendChild(cd);
   details(l);
   var em = el('a', 'Emergency help', 'btn'); em.id = 'emb'; em.href = 'emergency.html'; em.style.background = 'var(--sw-red)'; em.style.color = '#fff'; box.appendChild(em);
   if (box2) box = box2;
-  var a = el('a', 'Open my full stay page', 'btn'); a.href = '#'; a.onclick = function (ev) { ev.preventDefault(); openSite(ACCT ? '/account' : '/update.html?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)); }; if (!DEMO) box.appendChild(a);
-  remind(d);
-  box.appendChild(el('h2', 'Let Hannah know'));
-  quick("I've arrived", "I've arrived (sent from the app).", d); quick('Running late', 'Running late (sent from the app).', d);
   checklist(d);
+  PARTY = el('div'); box.appendChild(PARTY);
   box.appendChild(el('h2', 'Change or cancel'));
   var rq = el('div'); box.appendChild(rq); RQ = rq; RQD = d; if (!ACCT) { request('change', d, rq); request('cancel', d, rq); }
-  var pl = el('a', 'Read the full cancellation policy'); pl.href = '#'; pl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; box.appendChild(pl);
-  box.appendChild(el('h2', 'Something wrong?')); problem();
+  CAN = el('div'); box.appendChild(CAN);
+  var pl = el('a', 'Read the full cancellation policy'); pl.href = '#'; pl.style.cssText = 'display:block;margin-top:10px'; pl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; box.appendChild(pl);
+  remind(d);
+  var a = el('a', 'Open my full stay page', 'btn alt'); a.href = '#'; a.onclick = function (ev) { ev.preventDefault(); openSite(ACCT ? '/account' : '/update.html?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)); }; if (!DEMO) box.appendChild(a);
   var f = el('button', 'Forget this stay on this phone', 'alt'); f.style.marginTop = '24px';
   f.onclick = function () { if (DEMO) { leaveDemo(); location.href = 'index.html'; return; } kvDel('stay'); kvDel('checks'); kvDel('safety'); kvDel('trip'); if (P.LocalNotifications) P.LocalNotifications.cancel({ notifications: [{ id: 101 }, { id: 102 }] }); S = null; entry('This stay has been removed from this phone.'); };
   if (!ACCT) box.appendChild(f);

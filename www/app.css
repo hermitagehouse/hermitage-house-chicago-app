@@ -159,3 +159,10 @@ input[type=checkbox]:checked::after{content:'';position:absolute;left:6px;top:2p
 .av{width:34px;height:34px;border-radius:10px;background:var(--blush);color:var(--ink);display:flex;align-items:center;justify-content:center;font:400 17px var(--display);flex:none}
 .row.gst{align-items:center;gap:12px;justify-content:flex-start}.row.gst>div:nth-child(2){flex:1 1 auto}.row.gst>button{margin-left:auto}
 .bub .who2{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+
+details.dd{border-top:1px solid rgba(58,42,32,.1);margin-top:6px}
+details.dd>summary{list-style:none;cursor:pointer;padding:14px 0;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+details.dd>summary::-webkit-details-marker{display:none}
+details.dd>summary:after{content:"";width:9px;height:9px;border-right:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(45deg);margin:0 6px 4px 12px;transition:transform .15s}
+details.dd[open]>summary:after{transform:rotate(-135deg);margin-bottom:-4px}
+details.dd.solo,#box2 details.dd{background:#FFFAF0;border:1px solid rgba(58,42,32,.09);border-radius:18px;padding:4px 18px;margin:14px 0;box-shadow:0 8px 22px rgba(58,42,32,.07)}

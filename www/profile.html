@@ -24,6 +24,7 @@ function draw(p){
   var ok=el('p','','ok');
   cb('Email me when I have a new message',p.nEmail,'nEmail');
   n.appendChild(el('p','We never put message text in an email.','note'));n.appendChild(ok);box.appendChild(n);
+  var svc=el('div');box.appendChild(svc);kv('stay').then(function(v){if(!v)return;var S0=JSON.parse(v);svc.appendChild(el('h2','Request service or report a problem'));if(DEMO){svc.appendChild(el('p','With a real stay, this sends a note and one optional photo to your hosts. (Sample stay: nothing is sent.)','note'));return}problemForm(svc,S0)});
   box.appendChild(el('h2','Past stays'));
   var ps=el('div','','card');box.appendChild(ps);
   function pastRow(apt,a,b){var r=el('p','','kv');r.appendChild(el('strong','Apartment '+apt));r.appendChild(el('span',us(a)+' - '+us(b)));ps.appendChild(r)}

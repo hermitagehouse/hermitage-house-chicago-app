@@ -187,3 +187,35 @@ function vGet(){return kv('vprofile').then(function(v){try{return v?JSON.parse(v
 function vSet(o){return kvSet('vprofile',JSON.stringify(o))}
 
 function avatar(n){var e=document.createElement('div');e.className='av';e.textContent=((n||'?').trim()[0]||'?').toUpperCase();return e}
+
+// shrink and re-save the photo as a plain JPEG so the place it was taken (GPS) is not sent
+function clean(file) {
+  return new Promise(function (res, rej) {
+    var img = new Image(), u = URL.createObjectURL(file);
+    img.onload = function () {
+      var k = Math.min(1, 1600 / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u);
+      res(cv.toDataURL('image/jpeg', 0.8).split(',')[1]);
+    };
+    img.onerror = function () { rej(); }; img.src = u;
+  });
+}
+function problemForm(box, S) {
+  var wrap = el('div'), b = el('button', 'Request service or report a problem', 'alt'), form = el('div'); form.hidden = true;
+  form.appendChild(el('label', 'What do you need, or what is the problem?')); var n = el('textarea'); n.rows = 4; n.maxLength = 900; form.appendChild(n);
+  form.appendChild(el('label', 'Add one photo (optional)')); var f = el('input'); f.type = 'file'; f.accept = 'image/*'; form.appendChild(f);
+  form.appendChild(el('p', 'Your note and the one photo you choose are emailed to Hannah. The photo is re-saved without its location.', 'note'));
+  var go = el('button', 'Send report'); form.appendChild(go); var m = el('p', '', 'err'); form.appendChild(m);
+  b.onclick = function () { form.hidden = !form.hidden; };
+  go.onclick = function () {
+    if (!n.value.trim()) { m.textContent = 'Tell Hannah what is wrong.'; return; }
+    go.disabled = true;
+    var done = function (photo) {
+      var body = { id: S.id, t: S.t, note: n.value }; if (photo) body.photo = { type: 'image/jpeg', data: photo };
+      api('/api/stay-problem', body).then(function (r) { if (r.ok) { wrap.textContent = ''; wrap.appendChild(el('p', 'Sent. Hannah received your report on ' + stamp() + '.', 'ok')); } else { go.disabled = false; m.textContent = r.message || 'Try again.'; } });
+    };
+    if (f.files && f.files[0]) clean(f.files[0]).then(done, function () { go.disabled = false; m.textContent = 'That photo could not be read. Try another, or send without it.'; }); else done(null);
+  };
+  wrap.appendChild(b); wrap.appendChild(form); box.appendChild(wrap);
+}

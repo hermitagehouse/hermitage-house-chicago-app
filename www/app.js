@@ -99,7 +99,7 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
     cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     me: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>'
   };
-  var T = [['index.html', 'My Stay', 'home'], ['shallwe.html', 'ShallWe', 'places'], ['messages.html', 'Messages', 'msg'], ['profile.html', 'Profile', 'me'], ['availability.html', 'Availability', 'cal']];
+  var T = [['index.html', 'My Stay', 'home'], ['availability.html', 'Availability', 'cal'], ['messages.html', 'Messages', 'msg'], ['shallwe.html', 'ShallWe', 'places'], ['profile.html', 'Profile', 'me']];
   var alias = { 'stay.html': 'index.html', 'emergency.html': 'index.html', 'getting-around.html': 'index.html', 'contact.html': 'messages.html', 'signin.html': 'profile.html' };
   var here = (location.pathname.split('/').pop() || 'index.html'); here = alias[here] || here;
   var page = location.pathname.split('/').pop() || 'index.html';

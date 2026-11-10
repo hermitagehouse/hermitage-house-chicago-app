@@ -115,7 +115,7 @@ function addPerson(l, dd, redraw) {
     b.appendChild(s); b.appendChild(m);
   });
 }
-function details(l) {
+function details(l, st) {
   var wrap = el('div'); box.appendChild(wrap);
   api('/api/stay-details?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)).then(function (d) {
     if (window.onDetails) window.onDetails(d);
@@ -128,16 +128,22 @@ function details(l) {
     [['Check-in', ci], ['Checkout', co]].forEach(function (x) { var h = el('div'); h.style.cssText = 'flex:1;background:#fff;border-radius:14px;padding:10px;text-align:center'; var lb = el('span', x[0]); lb.style.cssText = 'display:block;font-size:13px'; var bb = el('b', x[1]); bb.style.cssText = 'display:block;font-size:18px'; h.appendChild(lb); h.appendChild(bb); tr.appendChild(h); });
     c.appendChild(tr);
     var ar = row('Address', d.address); if (ar) c.appendChild(ar);
-    var dd = drop('More check-in details'); c.appendChild(dd);
-    if (d.doorCode || d.wifiName || d.wifiPassword) {
-      [['Door code', d.doorCode], ['Wi-Fi', d.wifiName], ['Wi-Fi password', d.wifiPassword]].forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
-      dd.appendChild(el('p', "These are for your stay only. Please don't share the door code or the Wi-Fi password.", 'note'));
-    } else dd.appendChild(el('p', 'Your door code and Wi-Fi show here from 3:00pm the day before you arrive.', 'note'));
-    var HOUSE = d.houseNotes || [['Trash and recycling', 'Pickup is on Thursdays. The bins are to the left of the garage when you walk out the gate to the alley.'], ['Laundry', 'The laundry room is on the first floor, with two washers and two dryers.'], ['Extra paper products', 'To the left of the dryers, by the door leading to the backyard.']];
-    var rows = [['Parking', d.parkingNote]];
-    rows.push(['Fire extinguisher', d.extinguisher]);
-    rows.forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
-    HOUSE.forEach(function (x) { if (x && !Array.isArray(x)) x = [x.title, x.text]; if (!x || !x[1]) return; var r = el('p', '', 'kv'); r.style.cssText = 'display:block'; var k = el('strong', x[0]); k.style.cssText = 'display:block;margin-bottom:2px'; var v = el('span', x[1]); v.style.cssText = 'display:block;text-align:left'; r.appendChild(k); r.appendChild(v); dd.appendChild(r); });
+    var isOpen = d.detailsOpen || d.doorCode || d.wifiName || d.wifiPassword;
+    if (isOpen) {
+      var dd = drop('More check-in details'); c.appendChild(dd);
+      if (d.doorCode || d.wifiName || d.wifiPassword) {
+        [['Door code', d.doorCode], ['Wi-Fi', d.wifiName], ['Wi-Fi password', d.wifiPassword]].forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
+        dd.appendChild(el('p', "These are for your stay only. Please don't share the door code or the Wi-Fi password.", 'note'));
+      }
+      var HOUSE = d.houseNotes || [['Trash and recycling', 'Pickup is on Thursdays. The bins are to the left of the garage when you walk out the gate to the alley.'], ['Laundry', 'The laundry room is on the first floor, with two washers and two dryers.'], ['Extra paper products', 'To the left of the dryers, by the door leading to the backyard.']];
+      var rows = [['Parking', d.parkingNote]];
+      rows.push(['Fire extinguisher', d.extinguisher]);
+      rows.forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
+      HOUSE.forEach(function (x) { if (x && !Array.isArray(x)) x = [x.title, x.text]; if (!x || !x[1]) return; var r = el('p', '', 'kv'); r.style.cssText = 'display:block'; var k = el('strong', x[0]); k.style.cssText = 'display:block;margin-bottom:2px'; var v = el('span', x[1]); v.style.cssText = 'display:block;text-align:left'; r.appendChild(k); r.appendChild(v); dd.appendChild(r); });
+    } else {
+      var when = ''; if (st && st.start) { var o = new Date(st.start.replace(/-/g, '/')); o.setDate(o.getDate() - 1); when = us(o.getFullYear() + '-' + ('0' + (o.getMonth() + 1)).slice(-2) + '-' + ('0' + o.getDate()).slice(-2)); }
+      var lk = el('p', 'More check-in details open ' + (when ? when + ' at 3:00pm, ' : 'at 3:00pm ') + 'the day before you arrive: your door code, Wi-Fi, parking and house notes.', 'note'); lk.style.cssText = 'margin:12px 0 0'; c.appendChild(lk);
+    }
     wrap.appendChild(c);
     var emb = document.getElementById('emb'); if (emb) wrap.appendChild(emb);
     if (ACCT) {
@@ -157,7 +163,7 @@ function show0(l, d) {
   var hero = el('div', '', 'tile tall'); var him = document.createElement('img'); him.src = d.apt == '2' ? 'img/apt2.jpg' : 'img/apt1.jpg'; him.alt = ''; hero.appendChild(him);
   var ht = el('div', '', 't'); ht.appendChild(el('b', 'Apartment ' + d.apt)); ht.appendChild(el('span', us(d.start) + ' to ' + us(d.end) + (d.guests ? ' \u00b7 ' + d.guests + (d.guests == 1 ? ' guest' : ' guests') : '') + (d.pets ? ', pets' : '') + (d.garage ? ', garage' : ''))); hero.appendChild(ht); box.appendChild(hero);
   var days = Math.ceil((new Date(d.start.replace(/-/g, '/')) - new Date()) / 864e5); var out = Math.ceil((new Date(d.end.replace(/-/g, '/')) - new Date()) / 864e5); var cd = el('p', days > 1 ? days + ' days until check-in.' : days === 1 ? 'Check-in is tomorrow.' : days === 0 ? 'Check-in is today.' : out > 1 ? out + ' days until checkout.' : out === 1 ? 'Checkout is tomorrow.' : out === 0 ? 'Checkout is today.' : 'Welcome home.', 'note'); cd.style.cssText = 'text-align:center;margin:10px 0 0;font-family:var(--display);font-size:18px'; box.appendChild(cd);
-  details(l);
+  details(l, d);
   var em = el('a', 'Emergency help', 'btn'); em.id = 'emb'; em.href = 'emergency.html'; em.style.background = 'var(--sw-red)'; em.style.color = '#fff'; box.appendChild(em);
   if (box2) box = box2;
   checklist(d);

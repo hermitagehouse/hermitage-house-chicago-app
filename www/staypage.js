@@ -135,10 +135,9 @@ function details(l) {
     } else dd.appendChild(el('p', 'Your door code and Wi-Fi show here from 3:00pm the day before you arrive.', 'note'));
     var HOUSE = d.houseNotes || [['Trash and recycling', 'Pickup is on Thursdays. The bins are to the left of the garage when you walk out the gate to the alley.'], ['Laundry', 'The laundry room is on the first floor, with two washers and two dryers.'], ['Extra paper products', 'To the left of the dryers, by the door leading to the backyard.']];
     var rows = [['Parking', d.parkingNote]];
-    if (d.garageCode) rows.push(['Garage code', d.garageCode + ', then press the home button on the panel.']);
     rows.push(['Fire extinguisher', d.extinguisher]);
     rows.forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
-    HOUSE.forEach(function (x) { if (!x || !x[1]) return; var r = el('p', '', 'kv'); r.style.cssText = 'display:block'; var k = el('strong', x[0]); k.style.cssText = 'display:block;margin-bottom:2px'; var v = el('span', x[1]); v.style.cssText = 'display:block;text-align:left'; r.appendChild(k); r.appendChild(v); dd.appendChild(r); });
+    HOUSE.forEach(function (x) { if (x && !Array.isArray(x)) x = [x.title, x.text]; if (!x || !x[1]) return; var r = el('p', '', 'kv'); r.style.cssText = 'display:block'; var k = el('strong', x[0]); k.style.cssText = 'display:block;margin-bottom:2px'; var v = el('span', x[1]); v.style.cssText = 'display:block;text-align:left'; r.appendChild(k); r.appendChild(v); dd.appendChild(r); });
     wrap.appendChild(c);
     var emb = document.getElementById('emb'); if (emb) wrap.appendChild(emb);
     if (ACCT) {

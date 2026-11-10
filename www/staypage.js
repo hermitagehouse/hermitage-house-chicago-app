@@ -67,10 +67,8 @@ function remind(d) {
   };
   box.appendChild(b); box.appendChild(m);
 }
-function checklist(d) {
+function checklist(d, cards) {
   CHECK = checkItems(d);
-  var cdd = drop('Checkout instructions'); cdd.classList.add('solo'); box.appendChild(cdd);
-  var cards = el('div'); cdd.appendChild(cards);
   kv('checks').then(function (v) {
     var done = v ? JSON.parse(v) : [];
     function draw() {
@@ -83,15 +81,14 @@ function checklist(d) {
 }
 function row(k, v) { if (!v) return null; var p = el('p', '', 'kv'); p.appendChild(el('strong', k)); p.appendChild(el('span', v)); return p; }
 function party(wrap, l, d) {
-  wrap.appendChild(el('h2', 'People staying with you'));
-  var c = el('div', '', 'card'); wrap.appendChild(c);
+  if (!wrap) return; var c = el('div'); wrap.appendChild(c);
   function draw(dd) {
     c.textContent = '';
     var P2 = dd.party || [];
     if (!P2.length) c.appendChild(el('p', dd.isBooker ? 'No one added yet. You can add people who are staying with you on this trip.' : 'The person who booked can add people to this stay.', 'note'));
     P2.forEach(function (p) {
-      var r = el('div', '', 'row gst'); r.appendChild(avatar(p.name)); var t = el('div'); t.appendChild(el('b', p.name)); var sub = [p.email, p.phone].filter(Boolean).join(' \u00b7 '); if (sub) t.appendChild(el('span', sub, 'note')); r.appendChild(t);
-      if (dd.isBooker) { var rm = el('button', 'Remove', 'alt'); rm.style.cssText = 'width:auto;padding:8px 14px'; rm.onclick = function () { if (!confirm('Remove ' + p.name + ' from this stay? They lose access at once.')) return; rm.disabled = true; acctCall('/api/account/guests', { id: l.id, action: 'remove', guestId: p.id }).then(function (r2) { if (r2.ok === false) { rm.disabled = false; alert(r2.message || 'Could not remove. Try again.'); return; } dd.party = r2.party || []; draw(dd); }); }; r.appendChild(rm); }
+      var r = el('div', '', 'row gst'); r.style.flexWrap = 'wrap'; var av = avatar(p.name); av.style.flex = '0 0 auto'; r.appendChild(av); var t = el('div'); t.style.cssText = 'min-width:0;flex:1 1 150px'; var nb = el('b', p.name); nb.style.display = 'block'; t.appendChild(nb); [p.email, p.phone].filter(Boolean).forEach(function (v) { var sp = el('span', v, 'note'); sp.style.cssText = 'display:block;overflow-wrap:anywhere;margin:0'; t.appendChild(sp); }); r.appendChild(t);
+      if (dd.isBooker) { var rm = el('button', 'Remove', 'alt'); rm.style.cssText = 'width:auto;flex:0 0 auto;padding:8px 14px;margin:0'; rm.onclick = function () { if (!confirm('Remove ' + p.name + ' from this stay? They lose access at once.')) return; rm.disabled = true; acctCall('/api/account/guests', { id: l.id, action: 'remove', guestId: p.id }).then(function (r2) { if (r2.ok === false) { rm.disabled = false; alert(r2.message || 'Could not remove. Try again.'); return; } dd.party = r2.party || []; draw(dd); }); }; r.appendChild(rm); }
       c.appendChild(r);
     });
     if (dd.isBooker && dd.canAddGuests) { var ab = el('button', 'Add a person', 'alt'); ab.style.marginTop = '10px'; ab.onclick = function () { addPerson(l, dd, draw); }; c.appendChild(ab); }
@@ -115,48 +112,62 @@ function addPerson(l, dd, redraw) {
     b.appendChild(s); b.appendChild(m);
   });
 }
+function coOpen(d, st) {
+  if (d && typeof d.checkoutOpen === 'boolean') return d.checkoutOpen;
+  if (DEMO || !st || !st.end) return false;
+  var e = new Date(st.end.replace(/-/g, '/') + ' 11:00:00'); var from = new Date(e.getTime() - 48 * 3600e3); var last = new Date(st.end.replace(/-/g, '/') + ' 23:59:59');
+  var n = new Date(); return n >= from && n <= last;
+}
 function details(l, st) {
   var wrap = el('div'); box.appendChild(wrap);
   api('/api/stay-details?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)).then(function (d) {
     if (window.onDetails) window.onDetails(d);
     if (!d || !d.ok) return;   // routes not live yet, or the stay is not accepted: show nothing
-    var open = d.address || d.doorCode || d.wifiName || d.wifiPassword;
-    wrap.appendChild(el('h2', 'Check-in details'));
+    var out = coOpen(d, st);
+    wrap.appendChild(el('h2', out ? 'Checkout details' : 'Check-in details'));
     var c = el('div', '', 'card');
     var ci = firstTime(d.checkInSteps) || '3:00pm', co = firstTime(d.checkOutSteps) || '11:00am';
+    function timeBox(a, b2) { var h = el('div'); h.style.cssText = 'flex:1;background:#fff;border-radius:14px;padding:10px;text-align:center'; var lb = el('span', a); lb.style.cssText = 'display:block;font-size:13px'; var bb = el('b', b2); bb.style.cssText = 'display:block;font-size:18px'; h.appendChild(lb); h.appendChild(bb); return h; }
     var tr = el('div', '', 'times'); tr.style.cssText = 'display:flex;gap:10px;margin-bottom:10px';
-    [['Check-in', ci], ['Checkout', co]].forEach(function (x) { var h = el('div'); h.style.cssText = 'flex:1;background:#fff;border-radius:14px;padding:10px;text-align:center'; var lb = el('span', x[0]); lb.style.cssText = 'display:block;font-size:13px'; var bb = el('b', x[1]); bb.style.cssText = 'display:block;font-size:18px'; h.appendChild(lb); h.appendChild(bb); tr.appendChild(h); });
+    if (out) { tr.appendChild(timeBox('Checkout', co + (st && st.end ? ', ' + us(st.end).replace(/, \d{4}$/, '') : ''))); }
+    else { tr.appendChild(timeBox('Check-in', ci)); tr.appendChild(timeBox('Checkout', co)); }
     c.appendChild(tr);
+    if (out) { var bl = el('p', 'Before you go', 'note'); bl.style.cssText = 'margin:12px 0 2px;font-weight:600'; c.appendChild(bl); var ck = el('div'); c.appendChild(ck); checklist(st, ck); }
     var ar = row('Address', d.address); if (ar) c.appendChild(ar);
     var isOpen = d.detailsOpen || d.doorCode || d.wifiName || d.wifiPassword;
+    var pHome;
     if (isOpen) {
-      var dd = drop('More check-in details'); c.appendChild(dd);
+      var dd = drop(out ? 'Check-in details' : 'More check-in details'); c.appendChild(dd);
       if (d.doorCode || d.wifiName || d.wifiPassword) {
         [['Door code', d.doorCode], ['Wi-Fi', d.wifiName], ['Wi-Fi password', d.wifiPassword]].forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
         dd.appendChild(el('p', "These are for your stay only. Please don't share the door code or the Wi-Fi password.", 'note'));
       }
       var HOUSE = d.houseNotes || [['Trash and recycling', 'Pickup is on Thursdays. The bins are to the left of the garage when you walk out the gate to the alley.'], ['Laundry', 'The laundry room is on the first floor, with two washers and two dryers.'], ['Extra paper products', 'To the left of the dryers, by the door leading to the backyard.']];
-      var rows = [['Parking', d.parkingNote]];
-      rows.push(['Fire extinguisher', d.extinguisher]);
-      rows.forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
+      [['Parking', d.parkingNote], ['Fire extinguisher', d.extinguisher]].forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
       HOUSE.forEach(function (x) { if (x && !Array.isArray(x)) x = [x.title, x.text]; if (!x || !x[1]) return; var r = el('p', '', 'kv'); r.style.cssText = 'display:block'; var k = el('strong', x[0]); k.style.cssText = 'display:block;margin-bottom:2px'; var v = el('span', x[1]); v.style.cssText = 'display:block;text-align:left'; r.appendChild(k); r.appendChild(v); dd.appendChild(r); });
+      if (ACCT) { var pl2 = el('p', 'People staying with you', 'note'); pl2.style.cssText = 'margin:14px 0 2px;font-weight:600'; dd.appendChild(pl2); pHome = el('div'); dd.appendChild(pHome); }
     } else {
       var when = ''; if (st && st.start) { var o = new Date(st.start.replace(/-/g, '/')); o.setDate(o.getDate() - 1); when = us(o.getFullYear() + '-' + ('0' + (o.getMonth() + 1)).slice(-2) + '-' + ('0' + o.getDate()).slice(-2)); }
       var lk = el('p', 'More check-in details open ' + (when ? when + ' at 3:00pm, ' : 'at 3:00pm ') + 'the day before you arrive: your door code, Wi-Fi, parking and house notes.', 'note'); lk.style.cssText = 'margin:12px 0 0'; c.appendChild(lk);
+      if (ACCT) { var pd = drop('People staying with you'); pd.style.marginTop = '12px'; c.appendChild(pd); pHome = el('div'); pd.appendChild(pHome); }
     }
     wrap.appendChild(c);
-    var emb = document.getElementById('emb'); if (emb) wrap.appendChild(emb);
     if (ACCT) {
       if (d.isBooker && RQ && !RQ.firstChild) { request('change', RQD, RQ); request('cancel', RQD, RQ); }
       if (!d.isBooker && RQ) RQ.appendChild(el('p', 'Only the person who booked can change or cancel this stay.', 'note'));
-      party(PARTY || wrap, l, d);
+      party(pHome, l, d);
     }
     kvSet('safety', JSON.stringify({ address: d.address || '', extinguisher: d.extinguisher || '' }));
     var t = d.terms && d.terms.words;
-    if (t && CAN) { var cd2 = drop('Cancellation terms for this stay'); cd2.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + '.')); if (!d.terms.offsite) cd2.appendChild(el('p', 'This is a short version. The full cancellation policy is the one that applies.', 'note')); CAN.appendChild(cd2); }
+    if (t && CAN) {
+      CAN.appendChild(el('h2', 'Cancellation terms for this stay'));
+      var cc = el('div', '', 'card'); cc.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + '.'));
+      if (!d.terms.offsite) cc.appendChild(el('p', 'This is a short version. The full cancellation policy is the one that applies.', 'note'));
+      var pl = el('a', 'Read the full cancellation policy'); pl.href = '#'; pl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; cc.appendChild(pl); CAN.appendChild(cc);
+    }
   });
 }
-var ACCT = false, RQ = null, RQD = null, CAN = null, PARTY = null;
+var ACCT = false, RQ = null, RQD = null, CAN = null;
 function show(l, d) { kv('token').then(function (t) { ACCT = !!t && !DEMO; show0(l, d); }); }
 function show0(l, d) {
   S = l; clear(); if (window.onStay) window.onStay(d); kvSet('trip', JSON.stringify({ first: String(d.name || '').split(' ')[0], apt: d.apt, start: d.start, end: d.end }));
@@ -164,19 +175,16 @@ function show0(l, d) {
   var ht = el('div', '', 't'); ht.appendChild(el('b', 'Apartment ' + d.apt)); ht.appendChild(el('span', us(d.start) + ' to ' + us(d.end) + (d.guests ? ' \u00b7 ' + d.guests + (d.guests == 1 ? ' guest' : ' guests') : '') + (d.pets ? ', pets' : '') + (d.garage ? ', garage' : ''))); hero.appendChild(ht); box.appendChild(hero);
   var days = Math.ceil((new Date(d.start.replace(/-/g, '/')) - new Date()) / 864e5); var out = Math.ceil((new Date(d.end.replace(/-/g, '/')) - new Date()) / 864e5); var cd = el('p', days > 1 ? days + ' days until check-in.' : days === 1 ? 'Check-in is tomorrow.' : days === 0 ? 'Check-in is today.' : out > 1 ? out + ' days until checkout.' : out === 1 ? 'Checkout is tomorrow.' : out === 0 ? 'Checkout is today.' : 'Welcome home.', 'note'); cd.style.cssText = 'text-align:center;margin:10px 0 0;font-family:var(--display);font-size:18px'; box.appendChild(cd);
   details(l, d);
-  var em = el('a', 'Emergency help', 'btn'); em.id = 'emb'; em.href = 'emergency.html'; em.style.background = 'var(--sw-red)'; em.style.color = '#fff'; box.appendChild(em);
   if (box2) box = box2;
-  checklist(d);
-  PARTY = el('div'); box.appendChild(PARTY);
   box.appendChild(el('h2', 'Change or cancel'));
   var rq = el('div'); box.appendChild(rq); RQ = rq; RQD = d; if (!ACCT) { request('change', d, rq); request('cancel', d, rq); }
   CAN = el('div'); box.appendChild(CAN);
-  var pl = el('a', 'Read the full cancellation policy'); pl.href = '#'; pl.style.cssText = 'display:block;margin-top:10px'; pl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; box.appendChild(pl);
   remind(d);
   var a = el('a', 'Open my full stay page', 'btn alt'); a.href = '#'; a.onclick = function (ev) { ev.preventDefault(); openSite(ACCT ? '/account' : '/update.html?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)); }; if (!DEMO) box.appendChild(a);
   var f = el('button', 'Forget this stay on this phone', 'alt'); f.style.marginTop = '24px';
   f.onclick = function () { if (DEMO) { leaveDemo(); location.href = 'index.html'; return; } kvDel('stay'); kvDel('checks'); kvDel('safety'); kvDel('trip'); if (P.LocalNotifications) P.LocalNotifications.cancel({ notifications: [{ id: 101 }, { id: 102 }] }); S = null; entry('This stay has been removed from this phone.'); };
   if (!ACCT) box.appendChild(f);
+  var em = el('a', 'Emergency help', 'btn'); em.href = 'emergency.html'; em.style.cssText = 'background:var(--sw-red);color:#fff;margin-top:24px'; box.appendChild(em);
 }
 kv('stay').then(function (v) {
   if (!v) return entry();

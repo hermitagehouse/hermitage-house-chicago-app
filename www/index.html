@@ -3,6 +3,7 @@
 .hero{padding:6px 0 18px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;text-align:center}
 .hero .wc{font:400 26px var(--display);font-style:italic;color:var(--soft);margin:12px 0 0}
 .hero .mast{margin:0}
+main{overflow-x:clip}
 .hero{position:relative}.hero .seeds{position:absolute;inset:-6px -24px -90px -24px;z-index:0;pointer-events:none}
 .hero .wc,.hero .mast{position:relative;z-index:1}
 .map{position:relative;height:290px;border-radius:18px;overflow:hidden;background:#EAE8E1;border:1px solid rgba(0,0,0,.08)}.map svg{width:100%;height:100%}.map .am{position:absolute;left:10px;bottom:6px;font:600 11px sans-serif;color:#555}
@@ -46,10 +47,13 @@ var DET=null;
 window.onStay=function(d){var first=(d.name||'').split(' ')[0];if(first)document.getElementById('wc').textContent='Welcome home, '+first;loadWeather(d.start,d.end);loadEvents(d.start,d.end)};
 window.onDetails=function(det){DET=det;if(window.showRealMap)window.showRealMap(det&&!det.sample&&!/sample/i.test(det.address||'')?det.address:null)};
 document.getElementById('air').onclick=function(e){e.preventDefault();sheet('Getting here',function(b){
-  b.appendChild(el('h3','From O\u2019Hare (ORD)'));b.appendChild(el('p','Train: Blue Line to Jackson, switch to the Red Line toward Howard, get off at Lawrence. About 1 hour 15 minutes. By car: about 30 to 45 minutes.'));
-  b.appendChild(el('h3','From Midway (MDW)'));b.appendChild(el('p','Train: Orange Line to Roosevelt, switch to the Red Line toward Howard, get off at Lawrence. About 1 hour. By car: about 30 to 45 minutes.'));
+  b.appendChild(el('h3','Driving'));b.appendChild(el('p','From O\u2019Hare (ORD) or Midway (MDW) the drive is about 30 to 45 minutes, longer in rush hour.'));
+  var det=DET;if(det&&det.address&&!det.sample&&!/sample/i.test(det.address)){[['O\u2019Hare','O\u2019Hare International Airport'],['Midway','Midway International Airport']].forEach(function(r){var a=el('a','Driving directions from '+r[0],'btn');a.style.marginTop='8px';a.href='https://maps.apple.com/?dirflg=d&saddr='+encodeURIComponent(r[1])+'&daddr='+encodeURIComponent(det.address);a.onclick=function(e){e.preventDefault();var u=this.href;if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};b.appendChild(a)})}
+  b.appendChild(el('h3','By train'));
+  b.appendChild(el('p','From O\u2019Hare (ORD): Blue Line to Jackson, switch to the Red Line toward Howard, get off at Lawrence. About 1 hour 15 minutes.'));
+  b.appendChild(el('p','From Midway (MDW): Orange Line to Roosevelt, switch to the Red Line toward Howard, get off at Lawrence. About 1 hour.'));
   b.appendChild(el('p','Times are rough and change with traffic.','note'));
-  var det=DET;if(det&&det.address&&!det.sample&&!/sample/i.test(det.address)){[['O\u2019Hare','O\u2019Hare International Airport'],['Midway','Midway International Airport']].forEach(function(r){var a=el('a','Directions from '+r[0]+' in Apple Maps','btn');a.style.marginTop='8px';a.href='https://maps.apple.com/?saddr='+encodeURIComponent(r[1])+'&daddr='+encodeURIComponent(det.address);a.onclick=function(e){e.preventDefault();var u=this.href;if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};b.appendChild(a)})}})};
+})};
 function loadEvents(s,e){var a=D(s),z=D(e),y=a.getFullYear();
  var E=[['Restaurant Week','usually late January into early February',[1,20],[2,5]],['Chicago Auto Show','usually mid February',[2,8],[2,17]],['St. Patrick’s Day parades','around March 17',[3,10],[3,18]],['Chicago Marathon','early October',[10,6],[10,14]],['Pride Parade','last Sunday of June',[6,24],[6,30]],['Lollapalooza','around the start of August',[7,28],[8,5]],['Air and Water Show','mid August',[8,14],[8,22]],['Thanksgiving, Christkindlmarket','November into December',[11,15],[12,24]]];
  var box=document.getElementById('ev'),n=0;

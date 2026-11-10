@@ -24,6 +24,14 @@ function draw(p){
   var ok=el('p','','ok');
   cb('Email me when I have a new message',p.nEmail,'nEmail');
   n.appendChild(el('p','We never put message text in an email.','note'));n.appendChild(ok);box.appendChild(n);
+  box.appendChild(el('h2','Past stays'));
+  var ps=el('div','','card');box.appendChild(ps);
+  function pastRow(apt,a,b){var r=el('p','','kv');r.appendChild(el('strong','Apartment '+apt));r.appendChild(el('span',us(a)+' - '+us(b)));ps.appendChild(r)}
+  function noPast(){ps.appendChild(el('p','Stays you have finished will be kept here, so you can look back at them.','note'))}
+  if(DEMO){pastRow('2','2026-03-03','2026-03-17');ps.appendChild(el('p','Sample only.','note'))}
+  else kv('token').then(function(tk){if(!tk){noPast();return}acctCall('/api/account/me').then(function(m){var n=new Date(),td=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2);
+    var old=((m&&m.stays)||[]).filter(function(x){return x.end&&x.end<td&&x.status!=='cancelled'}).sort(function(a,b){return a.start<b.start?1:-1});
+    if(!old.length){noPast();return}old.forEach(function(x){pastRow(x.apt,x.start,x.end)})})});
   box.appendChild(el('h2','Your account'));
   var so=el('button','Sign out','alt');so.onclick=function(){if(DEMO){leaveDemo();location.href='index.html'}else acctCall('/api/account/signout',{}).then(function(){leaveDemo();location.href='signin.html'})};box.appendChild(so);
   var d=el('a','Delete my account');d.href='#';d.style.cssText='display:block;margin-top:16px;color:#A33';

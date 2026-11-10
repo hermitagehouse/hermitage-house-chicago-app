@@ -185,6 +185,7 @@ function show0(l, d) {
   var ht = el('div', '', 't'); ht.appendChild(el('b', 'Apartment ' + d.apt)); ht.appendChild(el('span', us(d.start) + ' to ' + us(d.end) + (d.guests ? ' \u00b7 ' + d.guests + (d.guests == 1 ? ' guest' : ' guests') : '') + (d.pets ? ', pets' : '') + (d.garage ? ', garage' : ''))); hero.appendChild(ht); box.appendChild(hero);
   var days = Math.ceil((new Date(d.start.replace(/-/g, '/')) - new Date()) / 864e5); var cd = el('p', days > 1 ? days + ' days until check-in.' : days === 1 ? 'Check-in is tomorrow.' : days === 0 ? 'Check-in is today.' : 'Welcome home.', 'note'); cd.style.cssText = 'text-align:center;margin:10px 0 0;font-family:var(--display);font-size:18px'; box.appendChild(cd);
   details(l);
+  var em = el('a', 'Emergency help', 'btn'); em.href = 'emergency.html'; em.style.background = 'var(--sw-red)'; em.style.color = '#fff'; box.appendChild(em);
   var gb = el('a', 'Getting around: trains, Metra, groceries', 'btn alt'); gb.href = 'getting-around.html'; box.appendChild(gb);
   var a = el('a', 'Open my full stay page', 'btn'); a.href = '#'; a.onclick = function (ev) { ev.preventDefault(); openSite(ACCT ? '/account' : '/update.html?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)); }; if (!DEMO) box.appendChild(a);
   remind(d);
@@ -195,8 +196,6 @@ function show0(l, d) {
   var rq = el('div'); box.appendChild(rq); RQ = rq; RQD = d; if (!ACCT) { request('change', d, rq); request('cancel', d, rq); }
   var pl = el('a', 'Read the full cancellation policy'); pl.href = '#'; pl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; box.appendChild(pl);
   box.appendChild(el('h2', 'Something wrong?')); problem();
-  box.appendChild(el('h2', 'Emergency')); var ec = el('div', '', 'card'); ec.appendChild(el('p', 'In an emergency, call 911.')); var e9 = el('a', 'Call 911', 'btn'); e9.href = 'tel:911'; e9.style.background = 'var(--sw-red)'; ec.appendChild(e9); var eh = el('a', 'Hospitals, animal ERs and safety info'); eh.href = 'emergency.html'; eh.style.display = 'block'; eh.style.marginTop = '12px'; ec.appendChild(eh); box.appendChild(ec);
-  box.appendChild(el('h2', 'Past stays')); var ps = el('div', '', 'card'); ps.style.textAlign = 'center'; var sd = document.createElement('img'); sd.src = 'img/seed-blush.svg'; sd.alt = ''; sd.style.cssText = 'width:34px;opacity:.8'; ps.appendChild(sd); ps.appendChild(el('p', DEMO ? 'Sample: Apartment 2, March 3 to March 17, 2026.' : 'Stays you have finished will be kept here, so you can look back at them.', 'note')); box.appendChild(ps);
   var f = el('button', 'Forget this stay on this phone', 'alt'); f.style.marginTop = '24px';
   f.onclick = function () { if (DEMO) { leaveDemo(); location.href = 'index.html'; return; } kvDel('stay'); kvDel('checks'); kvDel('safety'); kvDel('trip'); if (P.LocalNotifications) P.LocalNotifications.cancel({ notifications: [{ id: 101 }, { id: 102 }] }); S = null; entry('This stay has been removed from this phone.'); };
   if (!ACCT) box.appendChild(f);

@@ -20,7 +20,7 @@
 
 <h2>Your stay</h2>
 <div class="card" id="stay"><p>Loading your stay…</p></div>
-<a class="btn alt" href="stay.html">Check-in list, emergency help and past stays</a>
+<a class="btn alt" href="stay.html">Stay details and checkout list</a>
 
 <h2 id="around">Getting around</h2>
 <div class="map"><svg viewBox="0 0 340 290"><rect width="340" height="290" fill="#EAE8E1"/><rect x="0" y="215" width="340" height="75" fill="#CFE3EE"/><rect x="190" y="130" width="70" height="60" fill="#D5E6C8"/>
@@ -50,13 +50,17 @@ kv('stay').then(function(v){if(!v)return;var l=JSON.parse(v);var q='?id='+encode
   var first=(d.name||'').split(' ')[0];if(first)document.getElementById('wc').textContent='Welcome home, '+first;
   api('/api/stay-details'+q).then(function(det){ if(window.showRealMap)window.showRealMap(det&&!det.sample&&!/sample/i.test(det.address||'')?det.address:null);
    var c=document.getElementById('stay');c.innerHTML='';
-   function row(a,b){var r=el('div','','row');r.appendChild(el('span',a));r.appendChild(el('b',b));c.appendChild(r)}
+   function row(a,b){var r=el('p','','kv');r.appendChild(el('strong',a));var sp=el('span');if(typeof b==='string')sp.textContent=b;else sp.appendChild(b);r.appendChild(sp);c.appendChild(r);return sp}
+   function rev(key,label,val){var sp=row(label,'');kv(key).then(function(v){if(v==='1')sp.textContent=val;else{var b=el('button','Reveal','rev');b.onclick=function(){kvSet(key,'1');sp.textContent=val};sp.appendChild(b)}})}
    var old=document.getElementById('apt');if(old)old.remove();
-   if(d.apt){var hero=el('a','','tile');hero.id='apt';hero.href='stay.html';var him=document.createElement('img');him.src=String(d.apt)==='2'?'img/apt2.jpg':'img/apt1.jpg';him.alt='';hero.appendChild(him);
-     var g=det&&det.guests||d.guests;var ht=el('div','','t');ht.appendChild(el('b','Apartment '+d.apt));ht.appendChild(el('span',us(d.start)+' - '+us(d.end)+(g?' \u00b7 '+g+(g==1?' guest':' guests'):'')));hero.appendChild(ht);c.parentNode.insertBefore(hero,c)}
-   row('Check-in',us(d.start)+', 3:00pm');row('Checkout',us(d.end)+', 11:00am');
+   if(d.apt){var hero=el('a','','tile tall');hero.id='apt';hero.href='stay.html';var him=document.createElement('img');him.src=String(d.apt)==='2'?'img/apt2.jpg':'img/apt1.jpg';him.alt='';hero.appendChild(him);
+     var g=det&&det.guests||d.guests;var ht=el('div','','t');ht.appendChild(el('b','Apartment '+d.apt));ht.appendChild(el('span',us(d.start)+' to '+us(d.end)+(g?' \u00b7 '+g+(g==1?' guest':' guests'):'')));hero.appendChild(ht);c.parentNode.insertBefore(hero,c)}
+   function ft(t){var m=/\b(\d{1,2}(?::\d{2})?)\s?([ap])\.?m\b/i.exec(String(t||''));return m?m[1]+m[2].toLowerCase()+'m':''}
+   var tr=el('div');tr.style.cssText='display:flex;gap:10px;margin-bottom:10px';
+   [['Check-in',ft(det&&det.checkInSteps)||'3:00pm'],['Checkout',ft(det&&det.checkOutSteps)||'11:00am']].forEach(function(x){var hb=el('div');hb.style.cssText='flex:1;background:#fff;border-radius:14px;padding:10px;text-align:center';var lb=el('span',x[0]);lb.style.cssText='display:block;font-size:13px';var bb=el('b',x[1]);bb.style.cssText='display:block;font-size:18px';hb.appendChild(lb);hb.appendChild(bb);tr.appendChild(hb)});c.appendChild(tr);
    var open=det&&det.detailsOpen;
-   if(open){reveal(c,'rv_door','Door code',det.doorCode||'');reveal(c,'rv_wifi','Wi-Fi',(det.wifiName||'')+' / '+(det.wifiPassword||''))}
+   if(det&&det.address)row('Address',det.address);
+   if(open){rev('rv_door','Door code',det.doorCode||'');if(det.wifiName)row('Wi-Fi',det.wifiName);rev('rv_wifi','Wi-Fi password',det.wifiPassword||'')}
    else{var o=new Date(D(d.start));o.setDate(o.getDate()-1);row('Door code and Wi-Fi','Open '+us(o.getFullYear()+'-'+(o.getMonth()+1)+'-'+o.getDate())+', 3:00pm')}
    row('Contact','Hannah and Vlad');
    var ln=el('div','','lnk');var a1=el('a','Directions'),a2=el('a','Parking');ln.appendChild(a1);ln.appendChild(a2);c.appendChild(ln);

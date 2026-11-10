@@ -148,7 +148,7 @@ function details(l) {
     }
     kvSet('safety', JSON.stringify({ address: d.address || '', extinguisher: d.extinguisher || '' }));
     var t = d.terms && d.terms.words;
-    if (t && CAN) { var cd2 = drop('Cancellation terms for this stay'); cd2.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + '.')); cd2.appendChild(el('p', 'This is a short version. The full cancellation policy is the one that applies.', 'note')); CAN.appendChild(cd2); }
+    if (t && CAN) { var cd2 = drop('Cancellation terms for this stay'); cd2.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + '.')); if (!d.terms.offsite) cd2.appendChild(el('p', 'This is a short version. The full cancellation policy is the one that applies.', 'note')); CAN.appendChild(cd2); }
   });
 }
 var ACCT = false, RQ = null, RQD = null, CAN = null, PARTY = null;

@@ -135,6 +135,7 @@ function details(l) {
     } else c.appendChild(el('p', 'Your check-in details show here the day before you arrive.'));
     [['Parking', d.parkingNote], ['Fire extinguisher', d.extinguisher]].forEach(function (x) { var r = row(x[0], x[1]); if (r) c.appendChild(r); });
     wrap.appendChild(c);
+    var emb = document.getElementById('emb'); if (emb) wrap.appendChild(emb);
     if (ACCT) {
       if (d.isBooker && RQ && !RQ.firstChild) { request('change', RQD, RQ); request('cancel', RQD, RQ); }
       if (!d.isBooker && RQ) RQ.appendChild(el('p', 'Only the person who booked can change or cancel this stay.', 'note'));
@@ -185,7 +186,7 @@ function show0(l, d) {
   var ht = el('div', '', 't'); ht.appendChild(el('b', 'Apartment ' + d.apt)); ht.appendChild(el('span', us(d.start) + ' to ' + us(d.end) + (d.guests ? ' \u00b7 ' + d.guests + (d.guests == 1 ? ' guest' : ' guests') : '') + (d.pets ? ', pets' : '') + (d.garage ? ', garage' : ''))); hero.appendChild(ht); box.appendChild(hero);
   var days = Math.ceil((new Date(d.start.replace(/-/g, '/')) - new Date()) / 864e5); var cd = el('p', days > 1 ? days + ' days until check-in.' : days === 1 ? 'Check-in is tomorrow.' : days === 0 ? 'Check-in is today.' : 'Welcome home.', 'note'); cd.style.cssText = 'text-align:center;margin:10px 0 0;font-family:var(--display);font-size:18px'; box.appendChild(cd);
   details(l);
-  var em = el('a', 'Emergency help', 'btn'); em.href = 'emergency.html'; em.style.background = 'var(--sw-red)'; em.style.color = '#fff'; box.appendChild(em);
+  var em = el('a', 'Emergency help', 'btn'); em.id = 'emb'; em.href = 'emergency.html'; em.style.background = 'var(--sw-red)'; em.style.color = '#fff'; box.appendChild(em);
   var gb = el('a', 'Getting around: trains, Metra, groceries', 'btn alt'); gb.href = 'getting-around.html'; box.appendChild(gb);
   var a = el('a', 'Open my full stay page', 'btn'); a.href = '#'; a.onclick = function (ev) { ev.preventDefault(); openSite(ACCT ? '/account' : '/update.html?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)); }; if (!DEMO) box.appendChild(a);
   remind(d);

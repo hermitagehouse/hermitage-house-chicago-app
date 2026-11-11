@@ -29,7 +29,7 @@ var _api = api;
 api = function (path, body) {
   if (DEMO && path.indexOf('/api/stay') === 0) {
     if (body) return Promise.resolve({ ok: true });
-    if (path.indexOf('/api/stay-details') === 0) return Promise.resolve({ ok: true, detailsOpen: true, garageCode: '0000', address: '1234 Sample Street, Chicago (sample only)', doorCode: '0000', wifiName: 'SampleWiFi', wifiPassword: 'sample-password', checkInSteps: 'Check-in is at 3:00pm. Your door code is 0000 (sample only).', checkOutSteps: 'Checkout is at 11:00am. Please review check out instructions prior to departure.', parkingNote: 'Sample parking note.', extinguisher: 'By the front door or in the front closet.', terms: { words: 'In short: full refund 30 or more days before arrival. Inside 30 days the first 30 nights are kept, and the rest of the stay and the cleaning come back. If you leave early, you pay for the nights you stayed plus 30, never more than the nights you booked, and the cleaning stays paid.' } });
+    if (path.indexOf('/api/stay-details') === 0) return Promise.resolve({ ok: true, detailsOpen: true, garageCode: '0000', address: '1234 Sample Street, Chicago (sample only)', doorCode: '0000', wifiName: 'SampleWiFi', wifiPassword: 'sample-password', checkInSteps: 'Check-in is at 3:00pm. Your door code is 0000 (sample only).', checkOutSteps: 'Checkout is at 11:00am. Please review check out instructions prior to departure.', parkingNote: 'Sample parking note.', extinguisher: 'By the front door or in the front closet.' });
     return Promise.resolve({ ok: true, name: 'Sample Guest', apt: '1', start: '2027-01-10', end: '2027-02-12', guests: 2, pets: false, garage: false });
   }
   return _api(path, body);

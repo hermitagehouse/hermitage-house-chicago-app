@@ -162,7 +162,11 @@ function details(l, st) {
     }
     kvSet('safety', JSON.stringify({ address: d.address || '', extinguisher: d.extinguisher || '' }));
     var t = d.terms && d.terms.words;
-    if (t && CAN) {
+    if (DEMO && CAN) {
+      CAN.appendChild(el('h2', 'Cancellation terms for this stay'));
+      var dc = el('div', '', 'card'); dc.appendChild(el('p', 'Our cancellation terms are on our website.'));
+      var dl = el('a', 'Read the full cancellation policy'); dl.href = '#'; dl.onclick = function (ev) { ev.preventDefault(); openSite('/cancellation.html'); }; dc.appendChild(dl); CAN.appendChild(dc);
+    } else if (t && CAN) {
       CAN.appendChild(el('h2', 'Cancellation terms for this stay'));
       var cc = el('div', '', 'card'); cc.appendChild(el('p', t.charAt(0).toUpperCase() + t.slice(1) + (/[.!?]$/.test(t.trim()) ? '' : '.')));
       if (!d.terms.offsite) cc.appendChild(el('p', 'This is a short version. The full cancellation policy is the one that applies.', 'note'));

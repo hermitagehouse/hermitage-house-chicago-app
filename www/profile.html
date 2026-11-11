@@ -40,7 +40,7 @@ function draw(p){
 }
 function field(b,id,label,val,type){var l=el('label',label);l.htmlFor=id;b.appendChild(l);var i=document.createElement('input');i.id=id;i.value=val||'';if(type)i.type=type;b.appendChild(i);return i}
 function editProfile(p){openSheet('Edit your profile',function(b){
-  var n=field(b,'n','Your name',p.name),em=field(b,'em','Email',p.email,'email'),ph=field(b,'ph','Phone',p.phone,'tel'),o=field(b,'o','Other guests with you',p.others),pt=field(b,'pt','Pets (name, type)',p.pets);
+  var n=field(b,'n','Your name',p.name),em=field(b,'em','Email',p.email,'email'),ph=field(b,'ph','Phone',p.phone,'tel');b.appendChild(el('p','If you change this before you arrive, your door code may change too. Check My Stay before you travel.','note'));var o=field(b,'o','Other guests with you',p.others),pt=field(b,'pt','Pets (name, type)',p.pets);
   var s=el('button','Save');s.style.marginTop='12px';var m=el('p','','ok');
   s.onclick=function(){
     var nv={name:n.value.trim(),email:em.value.trim(),phone:ph.value.trim(),others:o.value.trim(),pets:pt.value.trim()};

@@ -36,12 +36,15 @@ function realChat(){
     if(d.canSend===false){form.appendChild(el('p',d.archived?'You can still write to your hosts. Their reply comes by email, not in Messages.':(d.message||''),'note'));if(d.archived){var nm=el('button','Write to your hosts','alt');nm.type='button';nm.style.marginTop='10px';form.appendChild(nm);
         // the note is kept with the stay and emailed to the hosts (POST /api/account/write); an account with no email, or a site without the route, gets the message form instead
         nm.onclick=function(){nm.hidden=true;var t=el('textarea');t.rows=4;t.maxLength=2000;t.setAttribute('aria-label','Write to your hosts');t.style.marginTop='10px';var s=el('button','Send');s.type='button';s.style.marginTop='8px';var er=el('p','','err');form.appendChild(t);form.appendChild(s);form.appendChild(er);t.focus();
-          s.onclick=function(){var v=t.value.trim();if(!v)return;s.disabled=true;er.textContent='';
-            acctCall('/api/account/write',{id:cur,text:v}).then(function(r){s.disabled=false;if(r.signedOut)return;
-              if(r.ok&&r.items){lastSig='';paint(r);var ok=el('p',r.message||'Sent. Your hosts will reply by email.','ok');form.insertBefore(ok,form.firstChild);return}
+          var em=null;
+          s.onclick=function(){var v=t.value.trim();if(!v)return;s.disabled=true;er.textContent='';var body={id:cur,text:v};if(em&&em.value.trim())body.replyTo=em.value.trim();
+            acctCall('/api/account/write',body).then(function(r){s.disabled=false;if(r.signedOut)return;
+              if(r.ok){if(r.items){lastSig='';paint(r)}else{t.remove();s.remove();er.remove();if(em){em.previousSibling.remove();em.nextSibling.remove();em.remove()}}var ok=el('p',r.message||'Sent. Your hosts will reply by email.','ok');form.insertBefore(ok,form.firstChild);return}
               if(r.open){lastSig='';load();return}
-              if(r.noEmail||(!r.message&&!r.offline)){location.href='contact.html';return}
-              er.textContent=r.message||'Could not send. Try again.'})}}}}
+              // an account with no email gives an address for this reply only (the site does not keep it); the note is still saved with the stay
+              if(r.noEmail){if(!em){var lb=el('label','Email for the reply');lb.htmlFor='rto';em=document.createElement('input');em.id='rto';em.type='email';em.maxLength=120;em.autocomplete='email';var nt=el('p','We do not have an email for you. Your reply will go to the address you type here.','note');nt.style.margin='4px 0 0';form.insertBefore(lb,s);form.insertBefore(em,s);form.insertBefore(nt,s);em.focus()}er.textContent=r.message||'Add an email for the reply.';return}
+              if(!r.message){location.href='contact.html';return}
+              er.textContent=r.message})}}}}
     else{var t=el('textarea');t.rows=3;t.maxLength=2000;t.placeholder='Write a message';t.style.marginTop='12px';form.appendChild(t);
       var s=el('button','Send');s.style.marginTop='8px';var er=el('p','','err');form.appendChild(s);form.appendChild(er);
       s.onclick=function(){var v=t.value.trim();if(!v)return;s.disabled=true;er.textContent='';

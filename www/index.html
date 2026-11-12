@@ -12,7 +12,7 @@ main{overflow-x:clip}
 .lnk{display:flex;gap:10px;margin-top:12px}.lnk a{flex:1;cursor:pointer}
 #ev .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(58,42,32,.1);margin:0}#ev .row>*{flex:0 1 auto;padding:0;font-size:inherit}
 .rev{background:var(--green);color:#fff;border:0;border-radius:10px;padding:7px 14px;font:600 14px var(--body)}
-.wx{display:flex;gap:8px;overflow:auto}.wx div{flex:1 0 74px;background:#fff;border-radius:14px;padding:10px 4px;text-align:center;font-size:13px}.wx b{display:block;font-size:17px}
+.wx{background:#fff;border-radius:14px;padding:2px 14px}.wx:empty{display:none}.wx .wr{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid rgba(58,42,32,.1);font-size:15px}.wx .wr:last-child{border-bottom:0}.wx .wr span:first-child{flex:0 0 96px;font-weight:600}.wx .wr span:nth-child(2){flex:1;min-width:0;color:var(--soft)}.wx .wr b{flex:none;white-space:nowrap}.wx small{display:block;font-weight:400;font-size:12px;color:var(--soft)}
 #ev .row{flex-direction:column;align-items:flex-start;gap:0}#ev .row b{text-align:left;font-weight:500;color:var(--soft);font-size:14.5px}
 </style></head>
 <body><main>
@@ -71,12 +71,21 @@ function loadEvents(s,e){var a=D(s),z=D(e),y=a.getFullYear();
 function loadWeather(s,e){var a=D(s),z=D(e),box=document.getElementById('wx'),note=document.getElementById('wxn');
  function iso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
  var A=iso(a),Z=iso(z);
- fetch(SITE+'/api/weather',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+ var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+ // Apple's forecast comes from OUR route /api/forecast (never from Apple on the phone). When its answer carries a mark, the mark's words and Apple's link sit beside the numbers (Legal, Nov 12, 2026).
+ // A site that does not have that route yet, or a failed answer, falls back to /api/weather (National Weather Service), as every earlier build reads it.
+ function get(path){return fetch(SITE+path,{cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null})}
+ get('/api/forecast').then(function(j){return j&&j.ok&&j.days?j:get('/api/weather')}).then(function(j){
   box.innerHTML='';
   if(!j||!j.ok||!j.days){box.style.display='none';note.style.display='none';if(box.previousElementSibling&&box.previousElementSibling.tagName==='H2')box.previousElementSibling.style.display='none';return}
   var ds=j.days.filter(function(x){return x.date>=A&&x.date<=Z});
-  if(!ds.length){box.innerHTML='';note.textContent='The forecast shows about a week before you arrive.';return}
-  var step=Math.max(1,Math.ceil(ds.length/6));
-  for(var i=0;i<ds.length;i+=step){var x=ds[i],dt=x.date.split('-'),d=el('div');d.appendChild(el('span',MO[+dt[1]-1]+' '+(+dt[2])));d.appendChild(el('b',(x.high==null?(x.low==null?'':x.low):x.high)+'\u00b0'));d.appendChild(el('span',String(x.short||'').split(' then ')[0]));box.appendChild(d)}
-  note.textContent=(j.credit||'Forecast: National Weather Service')+'.'+(ds[ds.length-1].date<Z?' The rest shows closer to your dates.':'')}).catch(function(){box.innerHTML='';note.textContent='Weather could not load right now.'})}
+  if(!ds.length){note.textContent='The forecast shows about a week before you arrive.';return}
+  var early=false;
+  ds.forEach(function(x){var dt=x.date.split('-'),dd=new Date(+dt[0],+dt[1]-1,+dt[2]),r=el('div','','wr'),l=el('span');l.appendChild(document.createTextNode(DOW[dd.getDay()]+', '+MO[+dt[1]-1]+' '+(+dt[2])));
+   if(x.early){early=true;l.appendChild(el('small','Early look'))}r.appendChild(l);r.appendChild(el('span',String(x.short||'').split(' then ')[0]));
+   r.appendChild(el('b',(x.high==null?'':x.high+'\u00b0')+(x.high!=null&&x.low!=null?' / ':'')+(x.low==null?'':x.low+'\u00b0')));box.appendChild(r)});
+  note.textContent='';
+  if(j.mark){note.appendChild(document.createTextNode(j.mark+' \u00b7 '));var a=el('a',j.linkText||'Other data sources');a.href=j.link;a.onclick=function(e){e.preventDefault();if(P.Browser)P.Browser.open({url:j.link});else window.open(j.link,'_blank')};note.appendChild(a);note.appendChild(document.createTextNode('. '))}
+  else note.appendChild(document.createTextNode((j.credit||'Forecast: National Weather Service')+'. '));
+  note.appendChild(document.createTextNode((ds.some(function(x){return x.high!=null&&x.low!=null})?'High and low for each day.':'')+(early&&j.note?' '+j.note:'')+(ds[ds.length-1].date<Z?' The rest shows closer to your dates.':'')))}).catch(function(){box.innerHTML='';note.textContent='Weather could not load right now.'})}
 </script><script>setTimeout(function(){if(window.showRealMap)window.showRealMap(null)},8000)</script><script src="staypage.js"></script></body></html>

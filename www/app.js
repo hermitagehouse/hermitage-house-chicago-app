@@ -147,16 +147,17 @@ var _sheet = null;
 function closeSheet(fromPop) { if (!_sheet) return; var s = _sheet; _sheet = null; s.o.remove(); document.removeEventListener('keydown', s.k); document.body.style.overflow = s.ov; if (s.back) s.back.focus && s.back.focus(); if (!fromPop && history.state && history.state.sheet) history.back(); }
 window.addEventListener('popstate', function () { closeSheet(true); });
 function openSheet(title, fill) {
-  closeSheet();
+  // a window opened from a window (a next step) takes its place: same Back entry, same place to return to
+  var prev = _sheet, keepBack = null; if (prev) { _sheet = null; prev.o.remove(); document.removeEventListener('keydown', prev.k); document.body.style.overflow = prev.ov; keepBack = prev.back; }
   var o = el('div', '', 'sheet'), b = el('div'); o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
   var x = el('button', '×', 'x'); x.setAttribute('aria-label', 'Close'); x.onclick = function () { closeSheet(); };
   o.onclick = function (e) { if (e.target === o) closeSheet(); };
   b.appendChild(el('h2', title)); fill(b); b.appendChild(x); o.appendChild(b);
   var k = function (e) { if (e.key === 'Escape') closeSheet(); };
   document.addEventListener('keydown', k);
-  _sheet = { o: o, k: k, ov: document.body.style.overflow, back: document.activeElement };
+  _sheet = { o: o, k: k, ov: document.body.style.overflow, back: prev ? keepBack : document.activeElement };
   document.body.style.overflow = 'hidden'; document.body.appendChild(o);
-  try { history.pushState({ sheet: 1 }, ''); } catch (e) {}
+  if (!prev) { try { history.pushState({ sheet: 1 }, ''); } catch (e) {} }
   x.focus();
 }
 

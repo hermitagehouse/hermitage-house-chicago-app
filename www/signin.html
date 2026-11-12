@@ -7,9 +7,8 @@
 <div class="card"><form id="f" novalidate><label for="e">Email or phone you booked with</label><input id="e" type="text" autocomplete="username" autocapitalize="none" autocorrect="off"><label for="p">Password</label><input id="p" type="password" autocomplete="current-password">
 <p id="out" class="err" role="alert" style="margin-top:10px"></p>
 <div class="btnrow"><button type="submit" id="go">Sign in</button></div>
-<p style="text-align:center;margin:16px 0 0"><a href="#" id="fg" style="color:var(--ink)">Forgot your email, phone or password?</a></p>
-<p style="text-align:center;margin:10px 0 0"><a href="#" id="mk" style="color:var(--ink);font-weight:600">Create a new account</a></p></form></div>
-<p class="note" style="text-align:center;margin-top:16px">Accounts are for guests who have booked with us.</p>
+<p style="text-align:center;margin:16px 0 0"><a href="#" id="mk" style="color:var(--ink);font-weight:600">Create your account</a></p>
+<p style="text-align:center;margin:10px 0 0"><a href="#" id="fg" style="color:var(--ink)">Forgot your password?</a></p></form></div>
 <div class="card" style="margin-top:18px"><h3>Not booked yet?</h3><p class="note">See which dates are open, send us a request, or write to us with a question.</p><button type="button" id="vs">See availability and request a stay</button></div>
 <div class="card" style="margin-top:18px"><h3>Just looking?</h3><p class="note">Look around the app with a sample stay. Nothing in it is real and nothing is sent.</p><button type="button" class="alt" id="sm">Look around with a sample stay</button></div>
 </div></main><script src="app.js"></script>
@@ -32,13 +31,41 @@ document.getElementById('f').onsubmit=function(ev){ev.preventDefault();out.class
   });
 };
 function lf(b,id,label,ph){var l=el('label',label);l.htmlFor=id;b.appendChild(l);var i=document.createElement('input');i.id=id;i.type='text';i.autocapitalize='none';i.setAttribute('autocorrect','off');i.value=val();if(ph)i.placeholder=ph;b.appendChild(i);return i}
-function mail(title,intro,btn,done){openSheet(title,function(b){
-  b.appendChild(el('p',intro));var i=lf(b,'ml','Email you booked with');var m=el('p','','err');var g=el('button',btn);g.style.marginTop='12px';
-  g.onclick=function(){var v=i.value.trim();if(!v){m.className='err';m.textContent='Type the email you booked with.';return}
-    g.disabled=true;acctCall('/api/account/forgot',{login:v}).then(function(d){g.disabled=false;m.className=d.ok===false?'err':'ok';m.textContent=d.message||done})};
-  b.appendChild(g);b.appendChild(m)})}
-document.getElementById('fg').onclick=function(ev){ev.preventDefault();mail('Forgot your sign-in?','Type the email you booked with and we will email a link to choose a new password. If you forgot which email you used, message Hannah at the address on your booking confirmation.','Email me a link','If that email has a booking, we sent a link to choose a new password.')};
-document.getElementById('mk').onclick=function(ev){ev.preventDefault();mail('Create a new account','Accounts are for guests who have booked with us. Type the email you booked with and we will email a link to choose your password.','Email me a link','If that email has a booking, we sent a link to create your password.')};
+var FAIL='Something went wrong. Try again.';
+function fl(b,id,label,type,v){var l=el('label',label);l.htmlFor=id;b.appendChild(l);var i=document.createElement('input');i.id=id;i.type=type||'text';i.autocapitalize='none';i.setAttribute('autocorrect','off');if(v)i.value=v;b.appendChild(i);return i}
+function stepNote(b,n){var p=el('p','Step '+n+' of 3','note');p.style.cssText='margin:0 0 6px;font-size:13px;letter-spacing:.12em;text-transform:uppercase';b.appendChild(p)}
+function lnk(b,text,fn){var p=el('p');p.style.cssText='text-align:center;margin:12px 0 0';var a=el('a',text);a.href='#';a.style.color='var(--ink)';a.onclick=function(ev){ev.preventDefault();fn()};p.appendChild(a);b.appendChild(p);return p}
+function backToSignIn(login){return function(){if(login)document.getElementById('e').value=login;closeSheet()}}
+function createAcct(pre,preDate){openSheet('Create your account',function(b){
+  stepNote(b,1);b.appendChild(el('p','Accounts are for guests who have booked with us. First, let us find your booking.'));
+  var lg=fl(b,'cl','Email or phone number on your booking','text',pre||val()),dt=fl(b,'cd','Check-in date','date',preDate||'');lg.autocomplete='username';
+  var m=el('p','','err');m.setAttribute('role','alert');var g=el('button','Find my booking');g.style.marginTop='12px';
+  g.onclick=function(){m.textContent='';var v=lg.value.trim();if(!v||!dt.value){m.textContent='Type the email or phone number on your booking and choose your check-in date.';return}
+    g.disabled=true;acctCall('/api/account/find',{login:v,start:dt.value}).then(function(d){g.disabled=false;
+      if(d.ok&&d.step==='email')addEmail(v,dt.value);
+      else if(d.ok&&d.step==='sent')checkEmail(d.hint||'the email on your booking',d.existing,v,dt.value);
+      else m.textContent=d.message||FAIL}).catch(function(){g.disabled=false;m.textContent=FAIL})};
+  b.appendChild(g);b.appendChild(m);lnk(b,'Back to sign in',backToSignIn(''))})}
+function addEmail(phone,date){openSheet('Add your email',function(b){
+  stepNote(b,2);b.appendChild(el('p','We found your booking. We do not have an email for you yet. Your email is where we send your link, and anything about your stay.'));
+  var em=fl(b,'ce','Your email','email','');em.autocomplete='email';var m=el('p','','err');m.setAttribute('role','alert');var g=el('button','Send my link');g.style.marginTop='12px';
+  g.onclick=function(){m.textContent='';var v=em.value.trim();if(!v){m.textContent='Type your email address.';return}
+    g.disabled=true;acctCall('/api/account/claim',{phone:phone,email:v,start:date}).then(function(d){g.disabled=false;if(d.ok)checkEmail(v,false,phone,date);else m.textContent=d.message||FAIL}).catch(function(){g.disabled=false;m.textContent=FAIL})};
+  b.appendChild(g);b.appendChild(m);lnk(b,'Back',function(){createAcct(phone,date)})})}
+function checkEmail(where,existing,login,date){openSheet('Check your email',function(b){
+  stepNote(b,3);b.appendChild(el('p',(existing?'You already have an account. We sent a link to ':'We sent a link to ')+where+'. Open it to choose your password. The link works once and lasts 24 hours.'));
+  b.appendChild(el('p','Then come back to this app and sign in.'));
+  b.appendChild(el('p','It can take a minute. If it is not there, look in your spam folder.','note'));
+  lnk(b,'Start again',function(){createAcct(login,date)});lnk(b,'Back to sign in',backToSignIn(login))})}
+function forgotPw(pre){openSheet('Forgot your password?',function(b){
+  b.appendChild(el('p','Type the email or phone number you sign in with. We will email a link to choose a new password.'));
+  var lg=fl(b,'fl','Email or phone number','text',pre||val());lg.autocomplete='username';var m=el('p','','ok');m.setAttribute('role','status');var g=el('button','Email me a link');g.style.marginTop='12px';
+  var again=el('p','Nothing arrived? ');again.style.cssText='text-align:center;margin:12px 0 0';again.hidden=true;var ab=el('a','Find my booking');ab.href='#';ab.style.color='var(--ink)';ab.onclick=function(ev){ev.preventDefault();createAcct(lg.value.trim())};again.appendChild(ab);
+  g.onclick=function(){m.textContent='';var v=lg.value.trim();if(!v){m.className='err';m.textContent='Type your email or phone number.';return}
+    g.disabled=true;acctCall('/api/account/forgot',{login:v}).then(function(d){g.disabled=false;m.className=d.ok===false?'err':'ok';m.textContent=d.message||'If that sign-in has an email on file, we sent a link to it.';again.hidden=false}).catch(function(){g.disabled=false;m.className='err';m.textContent=FAIL})};
+  b.appendChild(g);b.appendChild(m);b.appendChild(again);lnk(b,'Back to sign in',backToSignIn(''))})}
+document.getElementById('fg').onclick=function(ev){ev.preventDefault();forgotPw()};
+document.getElementById('mk').onclick=function(ev){ev.preventDefault();createAcct()};
 document.getElementById('vs').onclick=function(){LS.setItem('visitor','1');location.href='availability.html'};
 document.getElementById('sm').onclick=function(){
   LS.setItem('demo','1');

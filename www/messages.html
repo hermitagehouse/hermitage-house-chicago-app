@@ -26,7 +26,7 @@ function realChat(){
   function paint(d){
     box.innerHTML='';form.innerHTML='';
     if(d.archived){box.appendChild(el('p','This stay was cancelled. This conversation is saved with the stay\u2019s records.','note'))}
-    (d.items||[]).forEach(function(m){var mine=m.from==='guest'&&(!meName||m.who===meName);var b=el('div','','bub'+(mine?' me':''));if(!mine){var wh=el('div','','who2');wh.appendChild(avatar(m.who||'Your host'));wh.appendChild(el('b',m.who||'Your host'));b.appendChild(wh)}b.appendChild(el('div',m.text));
+    (d.items||[]).forEach(function(m){var mine=m.from==='guest'&&(!meName||m.who===meName);var b=el('div','','bub'+(mine?' me':'')+(m.from==='host'?' host':''));if(!mine){var wh=el('div','','who2');wh.appendChild(avatar(m.who||'Your host'));wh.appendChild(el('b',m.who||'Your host'));b.appendChild(wh)}b.appendChild(el('div',m.text));
       var line=tm(m.at);
       if(mine){var r=Object.keys(m.reads||{}).filter(function(k){return k!=='guest'}).map(function(k){return k+', '+tmShort(m.reads[k])});line+=' \u00b7 '+(r.length?'Read by '+r.join(' and '):'Sent, not read yet')}
       b.appendChild(el('small',line));
@@ -52,12 +52,12 @@ function realChat(){
 if(!DEMO){realChat();
 }else{
   chat.appendChild(el('p','Messages here go to your hosts, Hannah and Vlad, and are kept with your stay. Please don\u2019t send card or bank details here. In an emergency, call 911.','note'));
-  var M=[['Hannah','Welcome! Your place is ready from 3pm on Jan 10. Door code and Wi-Fi show in My stay the day before.','Jan 8, 3:02 PM','Read by you'],
+  var M=[['Hannah','Welcome! Your place is ready from 3pm on Jan 10. Door code and Wi-Fi show in My Stay the day before.','Jan 8, 3:02 PM','Read by you'],
          ['me','Thank you! We land around 2. Is early drop-off for bags okay?','Jan 8, 3:20 PM','Read by Hannah, Vlad'],
          ['Vlad','Yes, bags are fine. Text or message when you are close.','Jan 8, 4:05 PM','Read by you'],
          ['Sample Guest 2','Hi! I am staying on this trip too (a made-up sample message from a second sample guest).','Jan 9, 9:10 AM','Sample','guest']];
   var box=el('div');chat.appendChild(box);
-  function add(m){var b=el('div','','bub'+(m[0]==='me'?' me':''));if(m[0]!=='me'){var wh=el('div','','who2');wh.appendChild(avatar(m[0]));wh.appendChild(el('b',m[0]));b.appendChild(wh)}b.appendChild(el('div',m[1]));b.appendChild(el('small',m[2]+' \u00b7 '+m[3]));
+  function add(m){var b=el('div','','bub'+(m[0]==='me'?' me':'')+(m[0]!=='me'&&m[4]!=='guest'?' host':''));if(m[0]!=='me'){var wh=el('div','','who2');wh.appendChild(avatar(m[0]));wh.appendChild(el('b',m[0]));b.appendChild(wh)}b.appendChild(el('div',m[1]));b.appendChild(el('small',m[2]+' \u00b7 '+m[3]));
     if(m[0]!=='me'){var rp=el('a','Report');rp.href='#';rp.style.cssText='font-size:13px;display:inline-block;margin-top:2px';rp.onclick=function(ev){ev.preventDefault();openSheet('Report this message',function(sb){sb.appendChild(el('p','This is a sample stay, so nothing is sent. With a real stay, this sends the message to your hosts, Hannah and Vlad.'));var sg=el('button','Send report');sg.style.marginTop='12px';var so=el('p','','ok');sg.onclick=function(){sg.hidden=true;so.textContent='Thank you. The hosts will look at it. (Sample stay: nothing was sent.)'};sb.appendChild(sg);sb.appendChild(so)})};b.appendChild(rp);
       if(m[4]==='guest'){var bk=el('a','Block this person');bk.href='#';bk.style.cssText='font-size:13px;display:inline-block;margin:2px 0 0 14px';bk.onclick=function(ev){ev.preventDefault();openSheet('Block this person',function(sb){sb.appendChild(el('p','You won\u2019t see Sample Guest 2\u2019s messages. Your hosts will be told. (Sample stay: nothing is sent.)'));var sg=el('button','Block this person');sg.style.marginTop='12px';var so=el('p','','ok');sg.onclick=function(){sg.hidden=true;so.textContent='You won\u2019t see their messages. Your hosts have been told.';b.remove();closeSheet()};sb.appendChild(sg);sb.appendChild(so)})};b.appendChild(bk)}}
     box.appendChild(b)}

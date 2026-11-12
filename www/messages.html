@@ -62,7 +62,7 @@ if(!DEMO){realChat();
   chat.appendChild(el('p','Messages here go to your hosts, Hannah and Vlad, and are kept with your stay. Please don\u2019t send card or bank details here. In an emergency, call 911.','note'));
   var M=[['Hannah','Welcome! Your place is ready from 3pm on Jan 10. Door code and Wi-Fi show in My Stay the day before.','Jan 8, 3:02 PM','Read by you'],
          ['me','Thank you! We land around 2. Is early drop-off for bags okay?','Jan 8, 3:20 PM','Read by Hannah, Vlad'],
-         ['Vlad','Yes, bags are fine. Text or message when you are close.','Jan 8, 4:05 PM','Read by you'],
+         ['Vlad','Yes, bags are fine. Message us when you are close.','Jan 8, 4:05 PM','Read by you'],
          ['Sample Guest 2','Hi! I am staying on this trip too (a made-up sample message from a second sample guest).','Jan 9, 9:10 AM','Sample','guest']];
   var box=el('div');chat.appendChild(box);
   function add(m){var b=el('div','','bub'+(m[0]==='me'?' me':'')+(m[0]!=='me'&&m[4]!=='guest'?' host':''));if(m[0]!=='me'){var wh=el('div','','who2');wh.appendChild(avatar(m[0]));wh.appendChild(el('b',m[0]));b.appendChild(wh)}b.appendChild(el('div',m[1]));b.appendChild(el('small',m[2]+' \u00b7 '+m[3]));

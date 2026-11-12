@@ -21,6 +21,7 @@ document.getElementById('f').onsubmit=function(ev){ev.preventDefault();out.class
   var b=document.getElementById('go');b.disabled=true;out.className='note';out.textContent='Signing in…';
   acctCall('/api/account/signin',{login:e,password:pw,stay:true,client:'app'}).then(function(d){
     if(!d.ok||!d.token){b.disabled=false;out.className='err';out.textContent=d.message||'That email or phone and password did not match.';return}
+    if(d.role==='host'){LS.removeItem('demo');LS.removeItem('travel');kvSet('htoken',d.token).then(function(){return kvSet('hname',d.name||'')}).then(function(){location.href='host.html'});return}
     LS.removeItem('demo');
     kvSet('token',d.token).then(function(){return acctCall('/api/account/me')}).then(function(m){
       if(!m.me){b.disabled=false;out.className='err';out.textContent=m.message||'Something went wrong. Try again.';return}

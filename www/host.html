@@ -1,0 +1,108 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Hosting</title><link rel="stylesheet" href="app.css"><style>
+.pills{display:flex;gap:8px;justify-content:center;margin:6px 0 14px}.pills a{padding:9px 18px;border-radius:999px;background:#fff;border:1px solid rgba(58,42,32,.18);color:var(--ink);text-decoration:none;font-weight:600;font-size:15px}.pills a.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.htile{position:relative;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink);font-family:var(--display);font-weight:400}.htile img{position:absolute;right:-18%;bottom:-8%;width:44%;height:44%;object-fit:cover;border:2px solid #fff}
+.hc{display:block;text-align:center;padding:22px 16px;text-decoration:none;color:var(--ink)}.hc small{display:block;font-weight:700;margin-bottom:12px}.hc .htile{margin:0 auto 12px}
+.hc b{display:block;font:400 26px/1.15 var(--display)}.hc span{display:block;color:var(--soft);margin-top:6px}
+.count{text-align:center;font:400 30px/1.15 var(--display);margin:4px 0 16px}
+.conv{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid rgba(58,42,32,.12);text-decoration:none;color:var(--ink)}.conv>div:not(.htile){flex:1;min-width:0}.conv small{display:flex;justify-content:space-between;gap:8px;color:var(--soft);font-size:13px}.conv small span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.conv small span:last-child{flex:none}.conv b{display:block;font-size:17px}.conv p{margin:2px 0 0;color:var(--soft);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.conv.un b:after{content:"";display:inline-block;width:9px;height:9px;border-radius:5px;background:#A33;margin-left:8px}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:0;padding:16px 4px;border:0;border-bottom:1px solid rgba(58,42,32,.12);border-radius:0;background:transparent;box-shadow:none;text-decoration:none;color:var(--ink);font-size:17px;font-weight:400;text-align:left;margin:0}.mrow:after{content:"\203A";color:var(--soft);font-size:22px}
+.send{display:flex;gap:8px;align-items:flex-end;margin-top:10px}.send textarea{flex:1;margin:0}.send button{width:auto;margin:0;padding:12px 18px}
+.bub .who2 .htile{margin:0}.bub{overflow-wrap:anywhere}.bub.me.host{background:#C9D8E4;border-color:#A9BECF}
+.backlink{display:inline-block;margin:8px 0 0;color:var(--ink);text-decoration:none;font-weight:600}
+main{padding-bottom:110px}
+</style></head>
+<body><main id="m"><p>One moment.</p></main>
+<nav class="tabs" id="nav"></nav>
+<script src="app.js"></script>
+<script>
+// THE HOST SIDE (first version: Today, Messages, Menu). It talks only to /api/host/ with the host's own pass from sign-in.
+// It is given first names only; no door code, phone number, email, price or address reaches these screens, and nothing is kept on the phone but the pass and the host's name.
+(function(){
+var M=document.getElementById('m'),NAV=document.getElementById('nav'),me='',tok='',timer=null,last='',unread=0;
+var APTC={'1':['#F0E2C6','#D5E0EA'],'2':['#D9DECB','#EBD3CB','#CBD3C0']};
+var IC={home:'<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',msg:'<path d="M4 5h16v11H9l-5 4z"/>',menu:'<path d="M4 7h16M4 12h16M4 17h16"/>'};
+function other(){return me==='Vlad'?'Hannah':'Vlad'}
+function colour(apt,id,i){var l=APTC[String(apt)]||APTC['1'],n=0,s=String(id||'');for(var k=0;k<s.length;k++)n+=s.charCodeAt(k);return l[(n+(i||0))%l.length]}
+function tile(name,apt,id,i,size,photo){var t=el('div','','htile');t.style.cssText='width:'+size+'px;height:'+size+'px;border-radius:'+Math.round(size/5)+'px;font-size:'+Math.round(size/2)+'px;background:'+colour(apt,id,i);t.textContent=((name||'?').trim()[0]||'?').toUpperCase();
+  if(photo&&(apt==='1'||apt==='2')){var im=document.createElement('img');im.src='img/apt'+apt+'.jpg';im.alt='';im.style.borderRadius=Math.round(size/8)+'px';t.appendChild(im)}return t}
+function today(){return new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)}
+function days(a,b){return Math.round((new Date(b.replace(/-/g,'/'))-new Date(a.replace(/-/g,'/')))/864e5)}
+function span(s){return us(s.start)+' - '+us(s.end)}
+function phrase(s){var t=today();if(s.start<=t&&s.end>=t){var n=days(t,s.end);return n===0?'Checks out today':s.start===t?'Checks in today':'Checks out in '+n+(n===1?' day':' days')}return span(s)}
+function tshort(x){var d=new Date(x);if(isNaN(d))return'';var n=new Date();if(d.toDateString()===n.toDateString())return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(' ','').toLowerCase();if(n-d<6*864e5)return d.toLocaleDateString('en-US',{weekday:'short'});return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+function tlong(x){var d=new Date(x);if(isNaN(d))return String(x||'');return d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+function ttime(x){var d=new Date(x);if(isNaN(d))return'';return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(' ','').toLowerCase()}
+function leave(){kvDel('htoken');kvDel('hname');LS.removeItem('travel');location.replace('signin.html')}
+function hcall(path,body){var h={'Content-Type':'application/json',Authorization:'Bearer '+tok};
+  return fetch(SITE+path,body?{method:'POST',headers:h,body:JSON.stringify(body)}:{headers:h,cache:'no-store'}).then(function(r){return r.json().catch(function(){return{ok:false}}).then(function(j){if(r.status===401){leave();j.signedOut=true}if(r.status>=400&&j.ok===undefined)j.ok=false;return j})})
+  .catch(function(){return{ok:false,offline:true,message:'No connection right now. Try again when you are online.'}})}
+function head(){M.innerHTML='';var a=el('a','','mark');a.href='#today';a.setAttribute('aria-label','Hermitage House Chicago');a.innerHTML='<img src="img/wash.webp" alt=""><b>Hermitage</b><i>House</i><span>Chicago</span>';var w=el('div');w.style.textAlign='center';w.appendChild(a);M.appendChild(w)}
+function nav(on){NAV.innerHTML='';[['#today','Today','home'],['#messages','Messages','msg'],['#menu','Menu','menu']].forEach(function(t){var a=el('a');a.href=t[0];if(t[2]===on)a.className='on';a.innerHTML='<svg viewBox="0 0 24 24">'+IC[t[2]]+'</svg>'+t[1];if(t[2]==='msg'&&unread>0){var b=el('i',unread>9?'9+':String(unread),'badge');a.appendChild(b)}NAV.appendChild(a)})}
+function fail(d){M.appendChild(el('p',(d&&d.message)||'Something went wrong. Try again.','err'))}
+// every screen that shows live things looks again by itself while it is in front, and redraws only when the answer changed
+function watch(fn,ms){stop();last='';fn();timer=setInterval(function(){if(!document.hidden)fn()},ms)}
+function stop(){if(timer){clearInterval(timer);timer=null}}
+function changed(d){var s=JSON.stringify(d);if(s===last)return false;last=s;return true}
+function count(){hcall('/api/host/inbox').then(function(d){if(!d.threads)return;var n=0;d.threads.forEach(function(t){if(!t.archived)n+=(+t.unread||0)});if(n!==unread){unread=n;var on=NAV.querySelector('a.on');nav(on?({'#today':'home','#messages':'msg','#menu':'menu'})[on.getAttribute('href')]:'')}})}
+
+function vToday(up){nav('home');watch(function(){hcall('/api/host/today').then(function(d){if(d.signedOut||!changed(d))return;head();
+  var p=el('div','','pills');[['#today','Today',!up],['#upcoming','Upcoming',up]].forEach(function(x){var a=el('a',x[1]);a.href=x[0];if(x[2])a.className='on';p.appendChild(a)});M.appendChild(p);
+  if(d.ok===false){fail(d);return}
+  var list=up?(d.upcoming||[]):(d.today||[]),n=list.length;
+  M.appendChild(el('p',up?(n?'You have '+n+(n===1?' stay':' stays')+' coming up':'No stays coming up'):(n?'You have '+n+(n===1?' stay':' stays')+' today':'No stays today'),'count'));
+  list.forEach(function(r){var a=el('a','','card hc');a.href='#t='+encodeURIComponent(r.id);
+    var who=r.first+(r.group>1?'’s group of '+r.group:'');
+    a.appendChild(el('small',r.state==='checkout'?'11:00am':r.state==='checkin'?'3:00pm':r.state==='staying'?'All day':us(r.start)));
+    a.appendChild(tile(r.first,r.apt,r.id,0,96,true));
+    a.appendChild(el('b',r.state==='checkout'?who+' checks out':r.state==='checkin'?who+' checks in':r.state==='staying'?who+' stays for '+r.nightsLeft+' more '+(r.nightsLeft===1?'night':'nights'):who));
+    if(r.state==='upcoming')a.appendChild(el('span',span(r)+' · '+r.nights+(r.nights===1?' night':' nights')));
+    a.appendChild(el('span','Apartment '+r.apt));M.appendChild(a)});
+  if(!up)M.appendChild(el('p','Stays booked on our website or recorded by hand show here. Airbnb and Vrbo stays are on the manage page.','note'))})},60000)}
+
+var showArch=false;
+function vInbox(){nav('msg');watch(function(){hcall('/api/host/inbox').then(function(d){if(d.signedOut||!changed(d))return;head();M.appendChild(el('h1','Messages'));
+  if(d.ok===false){fail(d);return}
+  var all=d.threads||[],n=0;all.forEach(function(t){if(!t.archived)n+=(+t.unread||0)});if(n!==unread){unread=n;nav('msg')}
+  var list=all.filter(function(t){return showArch||!t.archived}),arch=all.filter(function(t){return t.archived}).length;
+  if(!list.length)M.appendChild(el('p','No conversations yet. When a guest writes, it shows here.','note'));
+  list.forEach(function(t){var a=el('a','','conv'+(t.unread>0?' un':''));a.href='#t='+encodeURIComponent(t.id);a.appendChild(tile(t.first,t.apt,t.id,0,48,false));
+    var b=el('div'),s=el('small');s.appendChild(el('span',phrase(t)+' · Apartment '+t.apt+(t.archived?' · Archived':'')));s.appendChild(el('span',tshort(t.last&&t.last.at)));b.appendChild(s);
+    b.appendChild(el('b',t.first));var l=t.last||{};b.appendChild(el('p',(l.from==='host'?(l.who===me?'You':l.who):l.who)+': '+(l.text||'')));a.appendChild(b);M.appendChild(a)});
+  if(arch){var x=el('a',showArch?'Hide archived conversations':'Show archived conversations','mrow');x.href='#';x.style.color='var(--soft)';x.onclick=function(e){e.preventDefault();showArch=!showArch;last='';vInbox()};M.appendChild(x)}})},8000)}
+
+function vThread(id){nav('msg');var box=null,built=false;
+  function draw(d){
+    if(!built){head();var bk=el('a','‹ Back to Messages','backlink');bk.href='#messages';M.appendChild(bk);
+      if(d.ok===false){fail(d);return}
+      var s=d.stay;M.appendChild(el('h1',s.names.length>2?s.names.slice(0,-1).join(', ')+' and '+s.names[s.names.length-1]:s.names.join(' and ')));
+      M.appendChild(el('p','Apartment '+s.apt+' · '+span(s)+(phrase(s)!==span(s)?' · '+phrase(s):''),'note'));
+      box=el('div');M.appendChild(box);
+      if(d.canSend!==false){M.appendChild(noteLine());var f=el('div','','send'),t=el('textarea');t.rows=2;t.maxLength=2000;t.placeholder='Write a reply';t.setAttribute('aria-label','Write a reply');var b=el('button','Send'),er=el('p','','err');f.appendChild(t);f.appendChild(b);M.appendChild(f);M.appendChild(er);
+        b.onclick=function(){var v=t.value.trim();if(!v)return;b.disabled=true;er.textContent='';hcall('/api/host/send',{id:id,text:v}).then(function(r){b.disabled=false;if(r.signedOut)return;if(r.ok===false||!r.items){er.textContent=r.message||'Could not send. Try again.';return}t.value='';last=JSON.stringify(r);bubbles(r);window.scrollTo(0,document.body.scrollHeight)})}}
+      built=true}
+    if(d.ok!==false)bubbles(d)}
+  function noteLine(){return el('p','You are replying as '+me+'. Everyone on this stay and '+other()+' can read it.','note')}
+  function bubbles(d){box.innerHTML='';var names=d.stay.names||[];
+    if(d.archived)box.appendChild(el('p','This conversation is archived.','note'));
+    (d.items||[]).forEach(function(m){var host=m.from==='host',mine=host&&m.who===me,b=el('div','','bub'+(host?' host':'')+(mine?' me':''));
+      if(!mine){var w=el('div','','who2');if(!host){var i=Math.max(0,names.indexOf(m.who));w.appendChild(tile(m.who,d.stay.apt,d.stay.id,i,34,false))}w.appendChild(el('b',m.who||'Guest'));b.appendChild(w)}
+      b.appendChild(el('div',m.text));var line=m.scheduled?'Scheduled for '+tlong(m.at)+', not yet seen by the guest':tlong(m.at),r=m.reads||{};
+      ['guest','Hannah','Vlad'].forEach(function(k){if(r[k]&&!(host&&m.who===k)&&!(!host&&k==='guest')&&k!==me)line+=' · Read by '+(k==='guest'?d.stay.first:k)+', '+ttime(r[k])});
+      b.appendChild(el('small',line));box.appendChild(b)});
+    if(!(d.items||[]).length)box.appendChild(el('p','No messages yet.','note'))}
+  watch(function(){hcall('/api/host/thread?id='+encodeURIComponent(id)).then(function(d){if(d.signedOut)return;if(d.offline&&built)return;if(!changed(d))return;var first=!built;draw(d);if(first)window.scrollTo(0,document.body.scrollHeight)})},8000)}
+
+function vMenu(){nav('menu');stop();head();M.appendChild(el('h1','Menu'));M.appendChild(el('p','Signed in as '+me+', host.','note'));
+  var a=el('a','Switch to traveling','mrow');a.href='#';a.onclick=function(e){e.preventDefault();LS.setItem('travel','1');location.href='index.html'};M.appendChild(a);
+  var b=el('a','Open the manage page','mrow');b.href='#';b.onclick=function(e){e.preventDefault();openSite('/admin')};M.appendChild(b);
+  var c=el('a','Sign out','mrow');c.href='#';c.onclick=function(e){e.preventDefault();c.textContent='Signing out…';hcall('/api/host/signout',{}).then(function(){leave()})};M.appendChild(c);
+  var n=el('p','Calendar, listings, earnings and settings are on the manage page.','note');n.style.marginTop='16px';M.appendChild(n)}
+
+function route(){var h=location.hash||'#today';window.scrollTo(0,0);
+  if(h==='#upcoming')vToday(true);else if(h==='#messages')vInbox();else if(h.indexOf('#t=')===0)vThread(decodeURIComponent(h.slice(3)));else if(h==='#menu')vMenu();else vToday(false)}
+Promise.all([kv('htoken'),kv('hname')]).then(function(v){tok=v[0]||'';me=v[1]||'';
+  if(!tok){location.replace('signin.html');return}
+  LS.removeItem('travel');window.addEventListener('hashchange',route);route();count();setInterval(function(){if(!document.hidden&&location.hash.indexOf('#messages')!==0)count()},60000);
+  if(!me)hcall('/api/host/me').then(function(d){if(d.name){me=d.name;kvSet('hname',me);route()}})});
+})();
+</script></body></html>

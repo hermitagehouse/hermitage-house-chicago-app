@@ -89,6 +89,20 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
   document.addEventListener('DOMContentLoaded', function () { document.body.insertBefore(d, document.body.firstChild); });
 })();
 
+// A HOST'S PHONE: a host who is signed in lands on the host side. "Switch to traveling" (host Menu) shows the guest side with a bar to switch back.
+(function () {
+  var page = location.pathname.split('/').pop() || 'index.html';
+  if (page === 'host.html' || page === 'offline.html') return;
+  kv('htoken').then(function (t) {
+    if (!t) return;
+    if (LS.getItem('travel') !== '1') { location.replace('host.html'); return; }
+    var d = document.createElement('div'); d.style.cssText = 'background:#3A2A20;color:#F5EFE3;font:600 12px sans-serif;text-align:center;padding:calc(6px + env(safe-area-inset-top)) 6px 6px;margin-top:calc(-1 * env(safe-area-inset-top));position:sticky;top:0;z-index:20';
+    d.textContent = 'You are in traveling mode. ';
+    var x = document.createElement('a'); x.textContent = 'Switch to hosting'; x.href = 'host.html'; x.style.color = '#EBD3CB'; x.onclick = function () { LS.removeItem('travel'); }; d.appendChild(x);
+    if (document.body) document.body.insertBefore(d, document.body.firstChild); else document.addEventListener('DOMContentLoaded', function () { document.body.insertBefore(d, document.body.firstChild); });
+  });
+})();
+
 // bottom tab bar on every screen: My Stay, ShallWe, Messages, Profile
 (function () {
   var I = {
@@ -103,7 +117,7 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
   var alias = { 'stay.html': 'index.html', 'emergency.html': 'index.html', 'getting-around.html': 'index.html', 'contact.html': 'messages.html', 'signin.html': 'profile.html' };
   var here = (location.pathname.split('/').pop() || 'index.html'); here = alias[here] || here;
   var page = location.pathname.split('/').pop() || 'index.html';
-  if (page === 'signin.html' || page === 'offline.html') return;
+  if (page === 'signin.html' || page === 'offline.html' || page === 'host.html') return;
   kv('stay').then(function (v) {
     var visitor = !v && LS.getItem('visitor') === '1';
     if (!v && !(visitor && (page === 'availability.html' || page === 'contact.html' || page === 'profile.html'))) { location.replace('signin.html'); return; }
@@ -119,9 +133,14 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
   });
   document.body.appendChild(nav);
   if (!hasStay) return;
-  kv('token').then(function (t) { if (!t || DEMO) return; acctCall('/api/account/me').then(function (m) {
-    var n = 0; (m.stays || []).forEach(function (x) { n += (+x.unread || 0); });
-    if (n > 0) { var a = nav.querySelectorAll('a')[2]; if (a) { var b = document.createElement('i'); b.className = 'badge'; b.textContent = n > 9 ? '9+' : n; a.appendChild(b); } } }); });
+  // The unread number on Messages: looked up when a screen opens and once a minute while it is showing
+  kv('token').then(function (t) { if (!t || DEMO) return;
+    function count() { acctCall('/api/account/me').then(function (m) {
+      if (!m || !m.stays) return;
+      var n = 0; m.stays.forEach(function (x) { n += (+x.unread || 0); });
+      var a = nav.querySelectorAll('a')[2]; if (!a) return; var b = a.querySelector('.badge');
+      if (n > 0) { if (!b) { b = document.createElement('i'); b.className = 'badge'; a.appendChild(b); } b.textContent = n > 9 ? '9+' : n; } else if (b) b.remove(); }); }
+    count(); setInterval(function () { if (!document.hidden) count(); }, 60000); });
   }
 })();
 
@@ -129,7 +148,7 @@ function signedIn() { return kv('stay').then(function (v) { return !!v; }); }
 // Small stacked logo at the top of every screen except Home, Sign in and ShallWe (ShallWe carries only ShallWe)
 (function () {
   var page = location.pathname.split('/').pop() || 'index.html';
-  if (page === 'index.html' || page === 'signin.html' || page === 'shallwe.html' || page === 'offline.html') return;
+  if (page === 'index.html' || page === 'signin.html' || page === 'shallwe.html' || page === 'offline.html' || page === 'host.html') return;
   function put() {
     var m = document.querySelector('main'); if (!m || m.querySelector('.mark')) return;
     var a = document.createElement('a'); a.className = 'mark'; a.href = 'index.html'; a.setAttribute('aria-label', 'Hermitage House Chicago, home');

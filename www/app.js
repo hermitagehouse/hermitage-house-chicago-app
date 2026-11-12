@@ -7,6 +7,8 @@ var LS = (function () {
   return { getItem: function (k) { var o = rd(); return k in o ? o[k] : null; }, setItem: function (k, v) { var o = rd(); o[k] = String(v); wr(o); }, removeItem: function (k) { var o = rd(); delete o[k]; wr(o); } };
 })();
 var SITE = 'https://hermitagehousechicago.com';
+// The host side (host.html) ships switched OFF until its demo account for the stores exists and Legal's review-notes clause is in (Legal, Nov 11 and 12, 2026). One word turns it on.
+var HOST_ON = false;
 var P = (window.Capacitor && window.Capacitor.Plugins) || {};
 function el(tag, text, cls) { var e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; }
 function kv(k) { return P.Preferences ? P.Preferences.get({ key: k }).then(function (r) { return r.value; }) : Promise.resolve(LS.getItem(k)); }

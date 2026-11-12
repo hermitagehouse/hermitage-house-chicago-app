@@ -82,7 +82,7 @@ function vThread(id){nav('msg');var box=null,built=false;
       built=true}
     if(d.ok!==false)bubbles(d)}
   // the store reviewers' demo host: its replies reach nobody, so the real line would be false (words waiting for Legal, asked Nov 12 2:14pm)
-  function noteLine(){return el('p',demo?'This is a sample conversation. Your reply is not sent to anyone.':'You are replying as '+me+'. Everyone on this stay and '+other()+' can read it.','note')}
+  function noteLine(){return el('p',demo?'This is a sample conversation. Nothing you send here reaches anyone.':'You are replying as '+me+'. Everyone on this stay and '+other()+' can read it.','note')}
   function bubbles(d){box.innerHTML='';var names=d.stay.names||[];
     if(d.archived)box.appendChild(el('p','This conversation is archived.','note'));
     (d.items||[]).forEach(function(m){var host=m.from==='host',mine=host&&m.who===me,b=el('div','','bub'+(host?' host':'')+(mine?' me':''));

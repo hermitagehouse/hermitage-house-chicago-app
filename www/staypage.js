@@ -175,7 +175,42 @@ function details(l, st) {
     }
   });
 }
-var ACCT = false, RQ = null, RQD = null, CAN = null;
+// PAYMENTS card (Build - website's final words, Thu Nov 12; Legal's 2:52pm and 3:22pm answers). Shown only to the booker, and only when the site sends `payments`.
+function payCard(p, at) {
+  if (!at || !p || typeof p !== 'object') return;
+  at.innerHTML = '';
+  var today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+  function usd(n) { n = +n || 0; var whole = Math.abs(n % 1) < 0.005; return '$' + n.toLocaleString('en-US', { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2 }); }
+  function rowWords(r) {
+    if (r.paid) { var pd = String(r.paidOn || ''); if (pd.length === 10) return 'Paid ' + us(pd); if (pd.length === 7) return 'Paid ' + MO[+pd.slice(5, 7) - 1] + ' ' + pd.slice(0, 4); return 'Paid'; }
+    var d = String(r.date || '');
+    if (!d) return 'Date not set yet';
+    if (d.length === 7) return d >= today.slice(0, 7) ? 'In ' + MO[+d.slice(5, 7) - 1] + ' ' + d.slice(0, 4) : 'Due now';
+    return d > today ? 'By ' + us(d) : 'Due now';
+  }
+  function kvRow(label, value, big) { var r = el('div', '', 'row'); var l = el('span', label); r.appendChild(l); var b = el('b', value); if (big) b.style.fontSize = '20px'; r.appendChild(b); return r; }
+  function small(text) { var sm = el('small', text); sm.style.cssText = 'display:block;color:var(--soft)'; return sm; }
+  at.appendChild(el('h2', 'Payments'));
+  var c = el('div', '', 'card');
+  if (p.split && p.split.stays) c.appendChild(el('p', 'This stay is part of one booking of ' + p.split.stays + ' stays. The booking comes to ' + usd(p.split.total) + '.'));
+  if (p.free) {
+    c.appendChild(el('p', 'There is nothing to pay for this stay.'));
+  } else {
+    var tr = kvRow('Total', usd(p.total), true); c.appendChild(tr);
+    c.appendChild(kvRow('Paid so far', usd(p.paid)));
+    c.appendChild(kvRow('Still to pay', +p.owed > 0 ? usd(p.owed) : 'Nothing. Paid in full.'));
+    var rows = p.rows || [];
+    if (p.next) { var nx = kvRow('Next payment (Payment ' + p.next.n + ' of ' + rows.length + ')', usd(p.next.amount)); var nxs = null; rows.forEach(function (r) { if (r.n === p.next.n) nxs = rowWords(r); }); if (nxs) nx.appendChild(small(nxs)); c.appendChild(nx); }
+    if (rows.length) {
+      var h = el('p', 'Your payments'); h.style.cssText = 'margin:14px 0 2px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)'; c.appendChild(h);
+      rows.forEach(function (r) { var rr = kvRow('Payment ' + r.n + ' of ' + r.of, usd(r.amount)); rr.appendChild(small(rowWords(r))); c.appendChild(rr); });
+    }
+  }
+  if (!p.free) c.appendChild(el('p', 'These are the payments we have recorded. If you have just paid, give us a day to show it. Tell us if anything does not look right.', 'note'));
+  if (p.note) { var nh = el('p', 'A note from your hosts'); nh.style.cssText = 'margin:14px 0 2px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)'; c.appendChild(nh); c.appendChild(el('p', String(p.note))); }
+  at.appendChild(c);
+}
+var ACCT = false, RQ = null, RQD = null, CAN = null, PAY = null;
 function show(l, d) { kv('token').then(function (t) { ACCT = !!t && !DEMO; show0(l, d); }); }
 function show0(l, d) {
   S = l; clear(); if (window.onStay) window.onStay(d); kvSet('trip', JSON.stringify({ first: String(d.name || '').split(' ')[0], apt: d.apt, start: d.start, end: d.end }));
@@ -186,6 +221,7 @@ function show0(l, d) {
   if (box2) box = box2;
   box.appendChild(el('h2', 'Change or cancel'));
   var rq = el('div'); box.appendChild(rq); RQ = rq; RQD = d; if (!ACCT) { request('change', d, rq); request('cancel', d, rq); }
+  PAY = el('div'); box.appendChild(PAY); payCard(d.isBooker && !DEMO ? d.payments : null, PAY);
   CAN = el('div'); box.appendChild(CAN);
   remind(d);
   var a = el('a', 'Open my full stay page', 'btn alt'); a.href = '#'; a.onclick = function (ev) { ev.preventDefault(); openSite(ACCT ? '/account' : '/update.html?id=' + encodeURIComponent(l.id) + '&t=' + encodeURIComponent(l.t)); }; if (!DEMO) box.appendChild(a);

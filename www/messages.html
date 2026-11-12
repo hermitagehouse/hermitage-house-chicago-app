@@ -25,7 +25,7 @@ function realChat(){
     b.appendChild(g);b.appendChild(o)})}
   function paint(d){
     box.innerHTML='';form.innerHTML='';
-    if(d.archived){box.appendChild(el('p','This stay was cancelled. This conversation is saved with the stay\u2019s records.','note'))}
+    if(d.archived){var cs=stays.filter(function(x){return String(x.id)===String(cur)})[0];box.appendChild(el('p',cs&&cs.status==='cancelled'?'This stay was cancelled. This conversation is saved with the stay\u2019s records.':'This conversation is closed. Your messages are saved with your stay.','note'))}
     (d.items||[]).forEach(function(m){var mine=m.from==='guest'&&(!meName||m.who===meName);var b=el('div','','bub'+(mine?' me':'')+(m.from==='host'?' host':''));if(!mine){var wh=el('div','','who2');wh.appendChild(avatar(m.who||'Your host'));wh.appendChild(el('b',m.who||'Your host'));b.appendChild(wh)}b.appendChild(el('div',m.text));
       var line=tm(m.at);
       if(mine){var r=Object.keys(m.reads||{}).filter(function(k){return k!=='guest'}).map(function(k){return k+', '+tmShort(m.reads[k])});line+=' \u00b7 '+(r.length?'Read by '+r.join(' and '):'Sent, not read yet')}
@@ -33,7 +33,7 @@ function realChat(){
       if(!mine&&m.id!==undefined){var rp=el('a','Report');rp.href='#';rp.style.cssText='font-size:13px;display:inline-block;margin-top:2px';rp.onclick=function(ev){ev.preventDefault();reportMsg(m)};b.appendChild(rp);if(m.from==='guest'){var bk=el('a','Block this person');bk.href='#';bk.style.cssText='font-size:13px;display:inline-block;margin:2px 0 0 14px';bk.onclick=function(ev){ev.preventDefault();blockMsg(m)};b.appendChild(bk)}}
       box.appendChild(b)});
     if(!(d.items||[]).length)box.appendChild(el('p','No messages yet. Say hello to your hosts below.'));
-    if(d.canSend===false){form.appendChild(el('p',d.archived?'To reach your hosts, start a new message in Messages.':(d.message||''),'note'))}
+    if(d.canSend===false){form.appendChild(el('p',d.archived?'To reach your hosts, start a new message in Messages.':(d.message||''),'note'));if(d.archived){var nm=el('a','Start a new message','btn alt');nm.href='contact.html';nm.style.marginTop='10px';form.appendChild(nm)}}
     else{var t=el('textarea');t.rows=3;t.maxLength=2000;t.placeholder='Write a message';t.style.marginTop='12px';form.appendChild(t);
       var s=el('button','Send');s.style.marginTop='8px';var er=el('p','','err');form.appendChild(s);form.appendChild(er);
       s.onclick=function(){var v=t.value.trim();if(!v)return;s.disabled=true;er.textContent='';

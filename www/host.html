@@ -87,7 +87,7 @@ function vThread(id){nav('msg');var box=null,built=false;
     (d.items||[]).forEach(function(m){var host=m.from==='host',mine=host&&m.who===me,b=el('div','','bub'+(host?' host':'')+(mine?' me':''));
       if(!mine){var w=el('div','','who2');if(!host){var i=Math.max(0,names.indexOf(m.who));w.appendChild(tile(m.who,d.stay.apt,d.stay.id,i,34,false))}w.appendChild(el('b',m.who||'Guest'));b.appendChild(w)}
       b.appendChild(el('div',m.text));var line=m.scheduled?'Scheduled for '+tlong(m.at)+', not yet seen by the guest':tlong(m.at),r=m.reads||{};
-      ['guest','Hannah','Vlad'].forEach(function(k){if(r[k]&&!(host&&m.who===k)&&!(!host&&k==='guest')&&k!==me)line+=' · Read by '+(k==='guest'?d.stay.first:k)+', '+ttime(r[k])});
+      ['guest','Hannah','Vlad'].forEach(function(k){if(r[k]&&!(host&&m.who===k)&&!(!host&&k==='guest')&&k!==me)line+=' · Read by '+(k==='guest'?(names.length===1&&d.stay.group===1?d.stay.first:'a guest'):k)+', '+ttime(r[k])});
       b.appendChild(el('small',line));box.appendChild(b)});
     if(!(d.items||[]).length)box.appendChild(el('p','No messages yet.','note'))}
   watch(function(){hcall('/api/host/thread?id='+encodeURIComponent(id)).then(function(d){if(d.signedOut)return;if(d.offline&&built)return;if(!changed(d))return;var first=!built;draw(d);if(first)window.scrollTo(0,document.body.scrollHeight)})},8000)}

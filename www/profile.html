@@ -83,6 +83,7 @@ function loadProfile(){
 kv('profile').then(function(v){
   if(!v){box.appendChild(el('p','Sign in to see and edit your details.'));var a=el('a','Sign in','btn');a.href='signin.html';box.appendChild(a);return}
   var pr=JSON.parse(v);draw(pr);
+  if(location.hash==='#edit'){try{history.replaceState(null,'',location.pathname)}catch(e){}editProfile(pr)}
   if(!DEMO)acctCall('/api/account/me').then(function(d){if(d.me){var np=profileFrom(d.me,pr);kvSet('profile',JSON.stringify(np));if(!document.querySelector('.sheet'))draw(np)}});
 });
 }

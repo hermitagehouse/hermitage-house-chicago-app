@@ -40,6 +40,14 @@ main{overflow-x:clip}
 var LINKS=[['Red Line','/redline/'],['Brown Line','/brownline/'],['Metra','https://metra.com'],['Bus routes','/bus/']];
 LINKS.forEach(function(l){var a=el('a',l[0]);a.href='#';a.onclick=function(e){e.preventDefault();var u=l[1].indexOf('http')===0?l[1]:'https://www.transitchicago.com'+l[1];if(P.Browser)P.Browser.open({url:u});else window.open(u,'_blank')};document.getElementById('lnks').appendChild(a)});
 
+// A signed-in guest with no phone or no email on file, and a stay that is not over: one optional line above the stay (the website's words, Legal's sentence). Nothing new is asked of the site.
+kv('token').then(function(t){if(!t||DEMO)return;acctCall('/api/account/me').then(function(m){if(!m||!m.me)return;
+  var noP=!String(m.me.phone||'').trim(),noE=!String(m.me.email||'').trim(),td=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+  if((!noP&&!noE)||!(m.stays||[]).some(function(x){return x.status!=='cancelled'&&x.end>=td}))return;
+  var c=el('div','','card');c.id='addme';c.appendChild(el('p','If you like, add your '+(noP&&noE?'phone number and email':noP?'phone number':'email')+' so we can reach you during the stay.'));
+  var b=el('a',noP&&noE?'Add my phone number and email':noP?'Add my phone number':'Add my email','btn alt');b.href='profile.html#edit';b.style.margin='10px 0 0';c.appendChild(b);
+  var bx=document.getElementById('box');bx.parentNode.insertBefore(c,bx)})});
+
 function D(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 function full(s){var d=D(s);return ['January','February','March','April','May','June','July','August','September','October','November','December'][d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()}
 function sheet(title,fill){openSheet(title,fill)}

@@ -61,7 +61,7 @@ function remind(d) {
       if (p.display !== 'granted') { m.textContent = 'Notifications are off for this app. You can turn them on in your phone settings.'; return; }
       function at(day, h, id, title, body) { var t = new Date(day + 'T' + h + ':00'); if (t > new Date()) return { id: id, title: title, body: body, schedule: { at: t } }; }
       function before(day, k) { var t = new Date(day + 'T12:00:00'); t.setDate(t.getDate() - k); return t.toISOString().slice(0, 10); }
-      var list = [at(before(d.start, 1), '09:00', 101, 'Arriving tomorrow', 'Open My stay for your check-in details.'), at(before(d.end, 1), '18:00', 102, 'Checkout tomorrow', 'Open My stay for the checkout list.')].filter(Boolean);
+      var list = [at(before(d.start, 1), '09:00', 101, 'Arriving tomorrow', 'Open My Stay for your check-in details.'), at(before(d.end, 1), '18:00', 102, 'Checkout tomorrow', 'Open My Stay for the checkout list.')].filter(Boolean);
       N.schedule({ notifications: list }).then(function () { m.textContent = list.length ? 'Reminders set on this phone.' : 'Your dates have already passed.'; });
     });
   };
@@ -151,7 +151,8 @@ function details(l, st) {
       if (ACCT) { var pl2 = el('p', 'People staying with you', 'note'); pl2.style.cssText = 'margin:14px 0 2px;font-weight:600'; dd.appendChild(pl2); pHome = el('div'); dd.appendChild(pHome); }
     } else {
       var when = ''; if (st && st.start) { var o = new Date(st.start.replace(/-/g, '/')); o.setDate(o.getDate() - 1); when = us(o.getFullYear() + '-' + ('0' + (o.getMonth() + 1)).slice(-2) + '-' + ('0' + o.getDate()).slice(-2)); }
-      var lk = el('p', 'More check-in details open ' + (when ? when + ' at 3:00pm, ' : 'at 3:00pm ') + 'the day before you arrive: your door code, Wi-Fi, parking and house notes.', 'note'); lk.style.cssText = 'margin:12px 0 0'; c.appendChild(lk);
+      var over = st && st.end && st.end < new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      var lk = el('p', 'More check-in details open ' + (when ? when + ' at 3:00pm, ' : 'at 3:00pm ') + 'the day before you arrive: your door code, Wi-Fi, parking and house notes.', 'note'); lk.style.cssText = 'margin:12px 0 0'; if (!over) c.appendChild(lk);
       if (ACCT) { var pd = drop('People staying with you'); pd.style.marginTop = '12px'; c.appendChild(pd); pHome = el('div'); pd.appendChild(pHome); }
     }
     wrap.appendChild(c);

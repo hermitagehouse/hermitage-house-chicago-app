@@ -40,14 +40,14 @@ function realChat(){
         acctCall('/api/account/messages',{id:cur,text:v}).then(function(r){s.disabled=false;if(r.ok===false){er.textContent=r.message||'Could not send. Try again.';if(r.items)paint(r);return}t.value='';paint(r)})}}
     form.appendChild(note.cloneNode(true));
   }
-  function load(){if(!cur)return;acctCall('/api/account/messages?id='+encodeURIComponent(cur)).then(function(d){if(d.signedOut)return;if(d.ok===false){box.innerHTML='';box.appendChild(el('p',d.message||'Could not load messages. Try again.','err'));return}
-    var typing=document.querySelector('#chat textarea');var keep=typing?typing.value:'';paint(d);var t2=document.querySelector('#chat textarea');if(t2&&keep)t2.value=keep})}
+  var lastSig='';function load(){if(!cur)return;acctCall('/api/account/messages?id='+encodeURIComponent(cur)).then(function(d){if(d.signedOut)return;if(d.ok===false){box.innerHTML='';box.appendChild(el('p',d.message||'Could not load messages. Try again.','err'));return}
+    var sig=JSON.stringify(d);if(sig===lastSig)return;lastSig=sig;var typing=document.querySelector('#chat textarea');var keep=typing?typing.value:'',foc=typing&&document.activeElement===typing,a1=typing?typing.selectionStart:0,a2=typing?typing.selectionEnd:0;paint(d);var t2=document.querySelector('#chat textarea');if(t2&&keep){t2.value=keep;if(foc){t2.focus();try{t2.setSelectionRange(a1,a2)}catch(e){}}}})}
   acctCall('/api/account/me').then(function(m){
     if(!m.me){box.appendChild(el('p',m.message||'Could not load your stays. Try again.','err'));return}
     meName=(m.me&&m.me.name)||'';stays=m.stays||[];kv('stay').then(function(v){cur=v?JSON.parse(v).id:(stays[0]&&stays[0].id);
       if(stays.length>1){var l=el('label','Stay');l.htmlFor='sp';top.appendChild(l);var sel=document.createElement('select');sel.id='sp';
-        stays.forEach(function(x){var o=document.createElement('option');o.value=x.id;o.textContent=(x.start?us(x.start):'')+' to '+(x.end?us(x.end):'')+(x.unread?' ('+x.unread+' new)':'');sel.appendChild(o)});sel.value=cur;sel.onchange=function(){cur=sel.value;load()};top.appendChild(sel)}
-      load();timer=setInterval(function(){if(!document.hidden)load()},20000)})});
+        stays.forEach(function(x){var o=document.createElement('option');o.value=x.id;o.textContent=(x.start?us(x.start):'')+' to '+(x.end?us(x.end):'')+(x.unread?' ('+x.unread+' new)':'');sel.appendChild(o)});sel.value=cur;sel.onchange=function(){cur=sel.value;lastSig='';load()};top.appendChild(sel)}
+      load();timer=setInterval(function(){if(!document.hidden)load()},8000)})});
 }
 if(!DEMO){realChat();
 }else{

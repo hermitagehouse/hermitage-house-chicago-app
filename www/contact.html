@@ -14,6 +14,7 @@ vGet().then(function(p){['n:name','e:email','p:phone'].forEach(function(x){var a
 var SIGNED=false;
 kv('token').then(function(t){if(!t||DEMO)return;acctCall('/api/account/me').then(function(m){if(!m||!m.me)return;
   var n=document.getElementById('n'),e=document.getElementById('e'),ph=document.getElementById('p');
+  if(!m.me.email){var h0=el('p','We do not have an email for you. Your reply will go to the address you type here.','note');h0.style.margin='4px 0 0';e.parentNode.insertBefore(h0,e.nextSibling)}
   if(m.me.name)n.value=m.me.name;if(m.me.phone&&!ph.value)ph.value=m.me.phone;
   if(m.me.email){SIGNED=true;e.value=m.me.email;e.readOnly=true;e.style.opacity='.7';var h=el('p','Replies go to the email on your account. You can change it in Profile.','note');h.style.margin='4px 0 0';e.parentNode.insertBefore(h,e.nextSibling)}})});
 go.onclick=function(){

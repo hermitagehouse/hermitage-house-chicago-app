@@ -18,7 +18,7 @@ main{padding-bottom:110px}
 // THE HOST SIDE (first version: Today, Messages, Menu). It talks only to /api/host/ with the host's own pass from sign-in.
 // It is given first names only; no door code, phone number, email, price or address reaches these screens, and nothing is kept on the phone but the pass and the host's name.
 (function(){
-var M=document.getElementById('m'),NAV=document.getElementById('nav'),me='',tok='',timer=null,last='',unread=0;
+var M=document.getElementById('m'),NAV=document.getElementById('nav'),me='',tok='',timer=null,last='',unread=0,demo=false;
 var APTC={'1':['#F0E2C6','#D5E0EA'],'2':['#D9DECB','#EBD3CB','#CBD3C0']};
 var IC={home:'<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',msg:'<path d="M4 5h16v11H9l-5 4z"/>',menu:'<path d="M4 7h16M4 12h16M4 17h16"/>'};
 function other(){return me==='Vlad'?'Hannah':'Vlad'}
@@ -32,7 +32,7 @@ function phrase(s){var t=today();if(s.start<=t&&s.end>=t){var n=days(t,s.end);re
 function tshort(x){var d=new Date(x);if(isNaN(d))return'';var n=new Date();if(d.toDateString()===n.toDateString())return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(' ','').toLowerCase();if(n-d<6*864e5)return d.toLocaleDateString('en-US',{weekday:'short'});return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
 function tlong(x){var d=new Date(x);if(isNaN(d))return String(x||'');return d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
 function ttime(x){var d=new Date(x);if(isNaN(d))return'';return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(' ','').toLowerCase()}
-function leave(){kvDel('htoken');kvDel('hname');LS.removeItem('travel');location.replace('signin.html')}
+function leave(){kvDel('htoken');kvDel('hname');kvDel('hdemo');LS.removeItem('travel');location.replace('signin.html')}
 function hcall(path,body){var h={'Content-Type':'application/json',Authorization:'Bearer '+tok};
   return fetch(SITE+path,body?{method:'POST',headers:h,body:JSON.stringify(body)}:{headers:h,cache:'no-store'}).then(function(r){return r.json().catch(function(){return{ok:false}}).then(function(j){if(r.status===401){leave();j.signedOut=true}if(r.status>=400&&j.ok===undefined)j.ok=false;return j})})
   .catch(function(){return{ok:false,offline:true,message:'No connection right now. Try again when you are online.'}})}
@@ -81,7 +81,8 @@ function vThread(id){nav('msg');var box=null,built=false;
         b.onclick=function(){var v=t.value.trim();if(!v)return;b.disabled=true;er.textContent='';hcall('/api/host/send',{id:id,text:v}).then(function(r){b.disabled=false;if(r.signedOut)return;if(r.ok===false||!r.items){er.textContent=r.message||'Could not send. Try again.';return}t.value='';last=JSON.stringify(r);bubbles(r);window.scrollTo(0,document.body.scrollHeight)})}}
       built=true}
     if(d.ok!==false)bubbles(d)}
-  function noteLine(){return el('p','You are replying as '+me+'. Everyone on this stay and '+other()+' can read it.','note')}
+  // the store reviewers' demo host: its replies reach nobody, so the real line would be false (words waiting for Legal, asked Nov 12 2:14pm)
+  function noteLine(){return el('p',demo?'This is a sample conversation. Your reply is not sent to anyone.':'You are replying as '+me+'. Everyone on this stay and '+other()+' can read it.','note')}
   function bubbles(d){box.innerHTML='';var names=d.stay.names||[];
     if(d.archived)box.appendChild(el('p','This conversation is archived.','note'));
     (d.items||[]).forEach(function(m){var host=m.from==='host',mine=host&&m.who===me,b=el('div','','bub'+(host?' host':'')+(mine?' me':''));
@@ -100,9 +101,9 @@ function vMenu(){nav('menu');stop();head();M.appendChild(el('h1','Menu'));M.appe
 
 function route(){var h=location.hash||'#today';window.scrollTo(0,0);
   if(h==='#upcoming')vToday(true);else if(h==='#messages')vInbox();else if(h.indexOf('#t=')===0)vThread(decodeURIComponent(h.slice(3)));else if(h==='#menu')vMenu();else vToday(false)}
-Promise.all([kv('htoken'),kv('hname')]).then(function(v){tok=v[0]||'';me=v[1]||'';
+Promise.all([kv('htoken'),kv('hname'),kv('hdemo')]).then(function(v){tok=v[0]||'';me=v[1]||'';demo=v[2]==='1';
   if(!tok){location.replace('signin.html');return}
   LS.removeItem('travel');window.addEventListener('hashchange',route);route();count();setInterval(function(){if(!document.hidden&&location.hash.indexOf('#messages')!==0)count()},60000);
-  if(!me)hcall('/api/host/me').then(function(d){if(d.name){me=d.name;kvSet('hname',me);route()}})});
+  hcall('/api/host/me').then(function(d){if(!d||!d.name)return;var ch=d.name!==me||!!d.demo!==demo;me=d.name;demo=!!d.demo;kvSet('hname',me);if(demo)kvSet('hdemo','1');else kvDel('hdemo');if(ch){last='';route()}})});
 })();
 </script></body></html>

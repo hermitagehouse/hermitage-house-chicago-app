@@ -79,7 +79,7 @@ function loadWeather(s,e){var a=D(s),z=D(e),box=document.getElementById('wx'),no
   box.innerHTML='';
   if(!j||!j.ok||!j.days){box.style.display='none';note.style.display='none';if(box.previousElementSibling&&box.previousElementSibling.tagName==='H2')box.previousElementSibling.style.display='none';return}
   var ds=j.days.filter(function(x){return x.date>=A&&x.date<=Z});
-  if(!ds.length){note.textContent='The forecast shows about a week before you arrive.';return}
+  if(!ds.length){note.textContent=j.mark?'The forecast shows about 10 days before you arrive.':'The forecast shows about a week before you arrive.';return}
   var early=false;
   ds.forEach(function(x){var dt=x.date.split('-'),dd=new Date(+dt[0],+dt[1]-1,+dt[2]),r=el('div','','wr'),l=el('span');l.appendChild(document.createTextNode(DOW[dd.getDay()]+', '+MO[+dt[1]-1]+' '+(+dt[2])));
    if(x.early){early=true;l.appendChild(el('small','Early look'))}r.appendChild(l);r.appendChild(el('span',String(x.short||'').split(' then ')[0]));

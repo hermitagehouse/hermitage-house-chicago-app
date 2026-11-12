@@ -33,7 +33,7 @@ function realChat(){
       if(!mine&&m.id!==undefined){var rp=el('a','Report');rp.href='#';rp.style.cssText='font-size:13px;display:inline-block;margin-top:2px';rp.onclick=function(ev){ev.preventDefault();reportMsg(m)};b.appendChild(rp);if(m.from==='guest'){var bk=el('a','Block this person');bk.href='#';bk.style.cssText='font-size:13px;display:inline-block;margin:2px 0 0 14px';bk.onclick=function(ev){ev.preventDefault();blockMsg(m)};b.appendChild(bk)}}
       box.appendChild(b)});
     if(!(d.items||[]).length)box.appendChild(el('p','No messages yet. Say hello to your hosts below.'));
-    if(d.canSend===false){form.appendChild(el('p',d.archived?'To reach your hosts, start a new message in Messages.':(d.message||''),'note'));if(d.archived){var nm=el('a','Start a new message','btn alt');nm.href='contact.html';nm.style.marginTop='10px';form.appendChild(nm)}}
+    if(d.canSend===false){form.appendChild(el('p',d.archived?'You can still write to your hosts. Their reply comes by email, not in Messages.':(d.message||''),'note'));if(d.archived){var nm=el('a','Write to your hosts','btn alt');nm.href='contact.html';nm.style.marginTop='10px';form.appendChild(nm)}}
     else{var t=el('textarea');t.rows=3;t.maxLength=2000;t.placeholder='Write a message';t.style.marginTop='12px';form.appendChild(t);
       var s=el('button','Send');s.style.marginTop='8px';var er=el('p','','err');form.appendChild(s);form.appendChild(er);
       s.onclick=function(){var v=t.value.trim();if(!v)return;s.disabled=true;er.textContent='';

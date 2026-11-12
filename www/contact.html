@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Message the host</title><link rel="stylesheet" href="app.css"></head>
 <body><main><h1>Message us</h1>
-<p>Ask us anything about a stay or the dates. Hannah will reply by email. For an emergency, call 911 instead.</p>
+<p>Ask us anything about a stay or the dates. Your hosts will reply by email. For an emergency, call 911 instead.</p>
 <label for="n">Your name</label><input id="n" maxlength="80">
 <label for="e">Your email</label><input id="e" type="email" maxlength="120">
 <label for="p">Phone (optional)</label><input id="p" type="tel" maxlength="40">
@@ -10,12 +10,18 @@
 <script>
 var out=document.getElementById('out'),go=document.getElementById('go');
 vGet().then(function(p){['n:name','e:email','p:phone'].forEach(function(x){var a=x.split(':');var i=document.getElementById(a[0]);if(i&&!i.value&&p[a[1]])i.value=p[a[1]]})});
+// A signed-in guest: the name and email come from the account and the email cannot be changed here, so a reply never goes to an address that is not on the account (Legal, Nov 12, 2026)
+var SIGNED=false;
+kv('token').then(function(t){if(!t||DEMO)return;acctCall('/api/account/me').then(function(m){if(!m||!m.me)return;
+  var n=document.getElementById('n'),e=document.getElementById('e'),ph=document.getElementById('p');
+  if(m.me.name)n.value=m.me.name;if(m.me.phone&&!ph.value)ph.value=m.me.phone;
+  if(m.me.email){SIGNED=true;e.value=m.me.email;e.readOnly=true;e.style.opacity='.7';var h=el('p','Replies go to the email on your account. You can change it in Profile.','note');h.style.margin='4px 0 0';e.parentNode.insertBefore(h,e.nextSibling)}})});
 go.onclick=function(){
   var v=function(i){return document.getElementById(i).value.trim()};
   if(!v('n')||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('e'))||!v('m')){out.textContent='Add your name, a valid email and a message.';return}
   go.disabled=true;
   api('/api/message',{name:v('n'),email:v('e'),phone:v('p'),message:v('m'),page:'app'}).then(function(r){
-    if(r.ok){vSet({name:v('n'),email:v('e'),phone:v('p')});out.className='ok';out.textContent='Sent on '+stamp()+'. Hannah will reply by email.'}
+    if(r.ok){if(!SIGNED)vSet({name:v('n'),email:v('e'),phone:v('p')});out.className='ok';out.textContent='Sent on '+stamp()+'. Your hosts will reply by email.'}
     else{go.disabled=false;out.className='err';out.textContent=r.message||'Try again.'}
   });
 };

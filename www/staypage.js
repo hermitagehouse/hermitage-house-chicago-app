@@ -147,7 +147,15 @@ function details(l, st) {
       // the times and the door code are shown above; keep only what else the check-in text says (for example the floor)
       var rest = String(d.checkInSteps || '').replace(/Check-in is at [^.]*\.\s*/i, '').replace(/Your door code is [^().]*(\([^)]*\))?\.?\s*/i, '').trim();
       [['Check-in', rest], ['Parking', d.parkingNote], ['Fire extinguisher', d.extinguisher]].forEach(function (x) { var r = row(x[0], x[1]); if (r) dd.appendChild(r); });
-      HOUSE.forEach(function (x) { if (x && !Array.isArray(x)) x = [x.title, x.text]; if (!x || !x[1]) return; var r = el('p', '', 'kv'); r.style.cssText = 'display:block'; var k = el('strong', x[0]); k.style.cssText = 'display:block;margin-bottom:2px'; var v = el('span', x[1]); v.style.cssText = 'display:block;text-align:left'; r.appendChild(k); r.appendChild(v); dd.appendChild(r); });
+      if (ACCT) {
+        // "I'm bringing a car" (site route POST /api/account/car): shows the parking details for this stay
+        var cb = el('input'); cb.type = 'checkbox'; cb.checked = !!d.car; cb.style.cssText = 'margin-right:8px;transform:scale(1.2)';
+        var cl = el('label', '', 'kv'); cl.style.cssText = 'display:flex;align-items:center;padding:8px 0;font-size:15px'; cl.appendChild(cb); cl.appendChild(document.createTextNode("I'm bringing a car"));
+        var cmsg = el('p', '', 'note'); cmsg.style.cssText = 'margin:0 0 6px';
+        cb.onchange = function () { cb.disabled = true; acctCall('/api/account/car', { id: l.id, car: cb.checked }).then(function (r3) { cb.disabled = false; if (!r3 || r3.ok === false) { cb.checked = !cb.checked; cmsg.textContent = (r3 && r3.message) || 'Could not save. Try again.'; return; } cmsg.textContent = 'Saved.'; }); };
+        dd.appendChild(cl); dd.appendChild(cmsg);
+      }
+      HOUSE.forEach(function (x) { if (x && !Array.isArray(x)) x = [x.title, x.text]; if (!x || !x[1]) return; var hd = drop(x[0]); hd.style.marginTop = '4px'; var hv = el('p', x[1], 'note'); hv.style.cssText = 'margin:6px 0 0;text-align:left;font-size:15px;color:inherit'; hd.appendChild(hv); dd.appendChild(hd); });
       if (ACCT) { var pl2 = el('p', 'People staying with you', 'note'); pl2.style.cssText = 'margin:14px 0 2px;font-weight:600'; dd.appendChild(pl2); pHome = el('div'); dd.appendChild(pHome); }
     } else {
       var when = ''; if (st && st.start) { var o = new Date(st.start.replace(/-/g, '/')); o.setDate(o.getDate() - 1); when = us(o.getFullYear() + '-' + ('0' + (o.getMonth() + 1)).slice(-2) + '-' + ('0' + o.getDate()).slice(-2)); }

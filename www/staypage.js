@@ -200,7 +200,7 @@ function payCard(p, at) {
     c.appendChild(kvRow('Paid so far', usd(p.paid)));
     c.appendChild(kvRow('Still to pay', +p.owed > 0 ? usd(p.owed) : 'Nothing. Paid in full.'));
     var rows = p.rows || [];
-    if (p.next) { var nx = kvRow('Next payment (Payment ' + p.next.n + ' of ' + rows.length + ')', usd(p.next.amount)); var nxs = null; rows.forEach(function (r) { if (r.n === p.next.n) nxs = rowWords(r); }); if (nxs) nx.appendChild(small(nxs)); c.appendChild(nx); }
+    if (p.next && rows.length > 1) { var nx = kvRow('Next payment (Payment ' + p.next.n + ' of ' + rows.length + ')', usd(p.next.amount)); var nxs = null; rows.forEach(function (r) { if (r.n === p.next.n) nxs = rowWords(r); }); if (nxs) nx.appendChild(small(nxs)); c.appendChild(nx); }
     if (rows.length) {
       var h = el('p', 'Your payments'); h.style.cssText = 'margin:14px 0 2px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)'; c.appendChild(h);
       rows.forEach(function (r) { var rr = kvRow('Payment ' + r.n + ' of ' + r.of, usd(r.amount)); rr.appendChild(small(rowWords(r))); c.appendChild(rr); });

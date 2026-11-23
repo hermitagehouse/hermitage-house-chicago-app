@@ -1,6 +1,11 @@
 name: Android release bundle (for Google Play)
 on:
   workflow_dispatch:
+    inputs:
+      upload_to_play:
+        description: "Upload to Google Play internal testing (only after Hannah says go and Legal's conditions hold)"
+        type: boolean
+        default: false
 permissions:
   contents: write
 jobs:
@@ -54,3 +59,12 @@ jobs:
         with:
           name: hermitage-house-chicago-release-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
+      - name: Upload to Google Play internal testing (only when asked)
+        if: ${{ inputs.upload_to_play == true }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.hermitagehousechicago.app
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed

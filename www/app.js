@@ -9,6 +9,20 @@ var LS = (function () {
 var SITE = 'https://hermitagehousechicago.com';
 // The host side (host.html) ships switched OFF until its demo account for the stores exists and Legal's review-notes clause is in (Legal, Nov 11 and 12, 2026). One word turns it on.
 var HOST_ON = false;
+// Push for host messages ships switched OFF. It stays off until Legal's wording, the Privacy line, the Apple push capability and the site route are all in place (Legal, Nov 23, 2026). One word turns it on.
+var PUSH_ON = false;
+// Asks the guest for permission and registers the phone's push token with the site. Does nothing while PUSH_ON is false.
+function pushSetup(stayCode) {
+  if (!PUSH_ON || !P.PushNotifications) return Promise.resolve();
+  return P.PushNotifications.requestPermissions().then(function (r) {
+    if (r.receive !== 'granted') return null;
+    return P.PushNotifications.register();
+  }).then(function () {
+    return new Promise(function (resolve) {
+      P.PushNotifications.addListener('registration', function (t) { acctCall('/api/account/push-token', { token: t.value, stay: stayCode || '' }).then(resolve, resolve); });
+    });
+  }).catch(function () {});
+}
 var P = (window.Capacitor && window.Capacitor.Plugins) || {};
 function el(tag, text, cls) { var e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; }
 function kv(k) { return P.Preferences ? P.Preferences.get({ key: k }).then(function (r) { return r.value; }) : Promise.resolve(LS.getItem(k)); }

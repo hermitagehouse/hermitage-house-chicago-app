@@ -150,7 +150,7 @@ function form(){
   fm.appendChild(el('p','Apartment '+APT+' · '+nice(S0)+' to '+nice(E0)+' · '+nights(S0,E0)+' nights','card'));
   var two=el('div','','two');fm.appendChild(two);
   var gs=L(two,'Guests *',inp('number','rg','2'));gs.min=1;gs.max=maxG;
-  var code=L(two,'Discount code, if applicable',inp('text','rc'));code.autocapitalize='characters';code.style.textTransform='uppercase';
+  var code=L(two,'Code, if you have one',inp('text','rc'));code.autocapitalize='characters';code.style.textTransform='uppercase';
   var pets=ck(fm,'We are bringing a pet','rp');
   var pw=el('div');pw.hidden=true;fm.appendChild(pw);
   var pcSel=document.createElement('select');[1,2,3,4].forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;pcSel.appendChild(o)});L(pw,'How many pets?',pcSel);
@@ -172,7 +172,7 @@ function form(){
   fm.appendChild(el('hr'));
   var two2=el('div','','two');fm.appendChild(two2);
   var nm=L(two2,'Your name *',inp('text','rn')),em=L(two2,'Email *',inp('email','re'));nm.autocomplete='name';em.autocomplete='email';
-  var ph=L(fm,'Phone *',inp('tel','rph'));fm.appendChild(el('p','The last four digits become the door code. It is always the phone of the person booking.','note'));
+  var ph=L(fm,'Phone *',inp('tel','rph'));
   var paySel=document.createElement('select');[['cash','Zelle or cash'],['bank','Bank transfer (you approve the payments on the secure bank link, and each is taken on its due date)']].forEach(function(x){var o=document.createElement('option');o.value=x[0];o.textContent=x[1];paySel.appendChild(o)});L(fm,'How would you like to pay?',paySel);paySel.onchange=function(){render()};
   var det=el('details','','cf');det.appendChild(el('summary','How do payments work?'));['The first 30 nights and the cleaning come due when you book, whenever you book.','After that, one payment for each 30-night period of your stay, due 10 days before that period starts. The last one may be shorter than 30 nights, and costs only its nights.','We need the money by the due date. If you pay by bank transfer, start it about a week earlier: a bank payment takes about four business days to arrive.','You will see your own dates and amounts before you accept, and again in your approval email.'].forEach(function(t){det.appendChild(el('p',t))});det.appendChild(el('p','Paying by Zelle? Your bank may limit how much you can send in a day. A payment over that limit may be sent over two days; the due date still applies. Questions? Write to hello@hermitagehousechicago.com.'));fm.appendChild(det);
   var ackPetW=el('div');ackPetW.hidden=true;fm.appendChild(ackPetW);var ackPet=ck(ackPetW,'I will pick up after my pet, using the bags provided. *');
@@ -205,7 +205,7 @@ function form(){
     qb.appendChild(el('small','The first 30 nights and the cleaning come due when you book, whenever you book. After that, one payment for each 30-night period of your stay, due 10 days before that period starts.'));
     var sc=pickq.schedule;if(sc&&sc.rows&&sc.rows.length){var box=el('div');box.appendChild(el('small','Your payments'+(paySel.value==='bank'?' by bank transfer':' by Zelle or cash')+', if we confirm today'));
       sc.rows.forEach(function(x){var r=el('p'),d=x.date?new Date(x.date+'T12:00:00'):null;var when=d?'By '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Today';r.appendChild(el('span',when+(x.pct?' ('+x.pct+'%)':x.note?' ('+x.note+')':'')));r.appendChild(el('strong',money(x.amount)));box.appendChild(r)});
-      box.appendChild(el('small','The cleaning is included in these amounts'+(last.pets?', with $'+last.petExtra+' added for your pet':'')+(free?', and so is one garage space':(pill&&garVal()==='with'?', and so is garage parking':''))+'.'));qb.appendChild(box)}
+      box.appendChild(el('small',(pill&&garVal()==='with'&&!free?'Cleaning is included':'Cleaning and one garage space are included')+(last.pets?', with $'+last.petExtra+' added for your pet':'')+'.'));qb.appendChild(box)}
     if(!has)qb.appendChild(el('small','Street parking is free, and one garage space is included.'))}
   price();
   function bad(t){out.hidden=false;out.className='reqmsg err';out.textContent=t;out.scrollIntoView({block:'center'})}

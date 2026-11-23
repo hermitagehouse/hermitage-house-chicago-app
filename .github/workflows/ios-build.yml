@@ -5,7 +5,7 @@ on:
     branches: [main]
 jobs:
   ios:
-    runs-on: macos-latest
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

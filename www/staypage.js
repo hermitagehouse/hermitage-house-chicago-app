@@ -87,7 +87,7 @@ function party(wrap, l, d) {
     var P2 = dd.party || [], rmBox = el('div');
     if (!P2.length) c.appendChild(el('p', dd.isBooker ? 'No one added yet. You can add people who are staying with you on this trip.' : 'The person who booked can add people to this stay.', 'note'));
     P2.forEach(function (p) {
-      var r = el('div', '', 'row gst'); r.style.flexWrap = 'wrap'; var av = avatar(p.name); av.style.flex = '0 0 auto'; r.appendChild(av); var t = el('div'); t.style.cssText = 'min-width:0;flex:1 1 150px'; var nb = el('b', p.name); nb.style.display = 'block'; t.appendChild(nb); [p.email, p.phone].filter(Boolean).forEach(function (v) { var sp = el('span', v, 'note'); sp.style.cssText = 'display:block;overflow-wrap:anywhere;margin:0'; t.appendChild(sp); }); r.appendChild(t);
+      var r = el('div', '', 'row gst'); r.style.flexWrap = 'wrap'; var av = avatar(p.name); av.style.flex = '0 0 auto'; r.appendChild(av); var t = el('div'); t.style.cssText = 'min-width:0;flex:1 1 150px'; var nb = el('b', p.name); nb.style.display = 'block'; t.appendChild(nb); [p.email, p.phone].filter(Boolean).forEach(function (v) { var sp = el('span', v, 'note'); sp.style.cssText = 'display:block;overflow-wrap:anywhere;margin:0'; t.appendChild(sp); }); if (!p.email && !p.phone) { var ne = el('span', 'no email or phone yet', 'note'); ne.style.cssText = 'display:block;margin:0'; t.appendChild(ne); } r.appendChild(t);
       if (dd.isBooker) { var rm = el('a', 'Remove ' + (String(p.name || '').split(' ')[0] || 'this person')); rm.href = '#'; rm.style.cssText = 'display:block;font-size:14px;padding:8px 0 0'; rm.onclick = function (ev) { ev.preventDefault(); if (rm.dataset.busy) return; if (!confirm('Remove ' + p.name + ' from this stay? They lose access at once.')) return; rm.dataset.busy = '1'; acctCall('/api/account/guests', { id: l.id, action: 'remove', guestId: p.id }).then(function (r2) { if (r2.ok === false) { delete rm.dataset.busy; alert(r2.message || 'Could not remove. Try again.'); return; } dd.party = r2.party || []; draw(dd); }); }; rmBox.appendChild(rm); }
       c.appendChild(r);
     });
@@ -100,13 +100,17 @@ function party(wrap, l, d) {
 function addPerson(l, dd, redraw) {
   openSheet('Add a person to this stay', function (b) {
     function f(id, label, type) { var lb = el('label', label); lb.htmlFor = id; b.appendChild(lb); var i = document.createElement('input'); i.id = id; if (type) i.type = type; b.appendChild(i); return i; }
-    var n = f('gn', 'First and last name'), em = f('ge', 'Email (or phone below)', 'email'), ph = f('gp', 'Phone', 'tel');
+    var n = f('gn', 'First and last name'), em = f('ge', 'Email (optional)', 'email'), ph = f('gp', 'Phone (optional)', 'tel');
+    // Legal's words: what the email or phone is used for (shown beside the two fields)
+    b.appendChild(el('p', 'We use this email or phone only to send this guest a sign-in and emails about this stay. We do not use it for marketing, and we do not send texts.', 'note'));
     var lab = el('label', '', 'ck'); lab.style.cssText = 'display:flex;gap:10px;align-items:flex-start;margin:12px 0'; var cb = document.createElement('input'); cb.type = 'checkbox'; cb.style.cssText = 'width:auto;margin-top:4px'; lab.appendChild(cb); var tx = el('span'); lab.appendChild(tx); b.appendChild(lab);
-    function words() { var fn = (n.value.trim().split(' ')[0]) || 'This person'; tx.textContent = fn + ' is staying with me on this trip, is 18 or older, and is OK with me giving you their email. They\u2019ll see this stay\u2019s dates, address, entry codes and Wi-Fi, and its messages.'; }
+    function words() { var fn = (n.value.trim().split(' ')[0]) || 'This person'; tx.textContent = fn + ' is staying with me on this trip, is 18 or older, and is OK with me giving you their email or phone number. They\u2019ll see this stay\u2019s dates, address, entry codes and Wi-Fi, and its messages.'; }
     words(); n.oninput = words;
     var m = el('p', '', 'err'), s = el('button', 'Add person'); s.onclick = function () {
-      if (!n.value.trim() || (!em.value.trim() && !ph.value.trim())) { m.textContent = 'Add a name and an email or phone.'; return; }
-      if (!cb.checked) { m.textContent = 'Please tick the box to continue.'; return; }
+      if (!n.value.trim()) { m.textContent = 'Add a name.'; return; }
+      var hasContact = !!(em.value.trim() || ph.value.trim());
+      // the tick is needed only when an email or phone number is given; a name alone needs no tick
+      if (hasContact && !cb.checked) { m.textContent = 'Please tick the box to continue.'; return; }
       s.disabled = true; var body = { id: l.id, name: n.value.trim(), confirm: true }; if (em.value.trim()) body.email = em.value.trim(); if (ph.value.trim()) body.phone = ph.value.trim();
       acctCall('/api/account/guests', body).then(function (r) { if (r.ok === false) { s.disabled = false; m.textContent = r.message || 'Could not add. Try again.'; return; } dd.party = r.party || dd.party; dd.canAddGuests = r.canAddGuests !== undefined ? r.canAddGuests : dd.canAddGuests; closeSheet(); redraw(dd); });
     };

@@ -28,4 +28,10 @@ end
 
 post_install do |installer|
   assertDeploymentTarget(installer)
+  # Xcode 27 refuses pod targets below the app's own 15.0; keep every pod at 15.0 (the app's minimum)
+  installer.pods_project.targets.each do |t|
+    t.build_configurations.each do |c|
+      c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
+  end
 end

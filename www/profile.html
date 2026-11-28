@@ -25,7 +25,7 @@ function draw(p){
   var warn=el('p','','note');
   cb('Email me when I have a new message',p.nEmail,'nEmail');
   if(PUSH_ON&&window.Capacitor&&Capacitor.getPlatform()==='ios')cb('Send me a push alert when I have a new message',p.nPush,'nPush');
-  n.appendChild(el('p','Booking, payment and stay-change emails are always sent. In the app\u2019s notification settings you can choose email, push, both or neither for messages from your hosts.','note'));
+  if(PUSH_ON)n.appendChild(el('p','Booking, payment and stay-change emails are always sent. In the app\u2019s notification settings you can choose email, push, both or neither for messages from your hosts.','note'));
   n.appendChild(warn);
   n.appendChild(el('p','We never put message text in an email.','note'));n.appendChild(ok);box.appendChild(n);
   var svc=el('div');box.appendChild(svc);kv('stay').then(function(v){if(!v)return;var S0=JSON.parse(v);svc.appendChild(el('h2','Request service or report a problem'));if(DEMO){svc.appendChild(el('p','With a real stay, this sends a note and one optional photo to your hosts. (Sample stay: nothing is sent.)','note'));return}problemForm(svc,S0)});

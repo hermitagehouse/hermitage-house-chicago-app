@@ -28,6 +28,10 @@ jobs:
           java-version: 21
       - run: npm ci
       - run: npx cap sync android
+      - name: "Remove the push plugin from the Android build (Legal Nov 23: no push permission on Android until cleared)"
+        run: |
+          sed -i '/capacitor-push-notifications/d' android/app/capacitor.build.gradle android/capacitor.settings.gradle
+          if grep -q 'capacitor-push-notifications' android/app/capacitor.build.gradle android/capacitor.settings.gradle; then echo '::error::push plugin still in Android build'; exit 1; fi
       - name: Get or make the upload key
         run: |
           KS="$RUNNER_TEMP/upload.keystore"

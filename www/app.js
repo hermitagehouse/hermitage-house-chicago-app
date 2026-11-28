@@ -11,17 +11,23 @@ var SITE = 'https://hermitagehousechicago.com';
 var HOST_ON = false;
 // Push for host messages ships switched OFF. It stays off until Legal's wording, the Privacy line, the Apple push capability and the site route are all in place (Legal, Nov 23, 2026). One word turns it on.
 var PUSH_ON = false;
-// Asks the guest for permission and registers the phone's push token with the site. Does nothing while PUSH_ON is false.
-function pushSetup(stayCode) {
-  if (!PUSH_ON || !P.PushNotifications) return Promise.resolve();
-  return P.PushNotifications.requestPermissions().then(function (r) {
-    if (r.receive !== 'granted') return null;
-    return P.PushNotifications.register();
-  }).then(function () {
-    return new Promise(function (resolve) {
-      P.PushNotifications.addListener('registration', function (t) { acctCall('/api/account/push-token', { token: t.value, stay: stayCode || '' }).then(resolve, resolve); });
-    });
-  }).catch(function () {});
+// Asks the guest's phone for permission and registers its push token with the site. Does nothing while PUSH_ON is false, or off iPhone.
+var PUSH_LISTENING = false;
+function pushSetup() {
+  if (!PUSH_ON || !P.PushNotifications || !window.Capacitor || Capacitor.getPlatform() !== 'ios' || DEMO) return Promise.resolve(false);
+  var N = P.PushNotifications;
+  if (!PUSH_LISTENING) {
+    PUSH_LISTENING = true;
+    N.addListener('registration', function (t) { kvSet('pushtoken', t.value).then(function () { return acctCall('/api/account/push', { token: t.value, platform: 'ios' }); }).catch(function () {}); });
+    N.addListener('registrationError', function () {});
+  }
+  return N.checkPermissions().then(function (s) { return s.receive === 'granted' ? s : N.requestPermissions(); })
+    .then(function (r) { if (!r || r.receive !== 'granted') return false; return N.register().then(function () { return true; }); })
+    .catch(function () { return false; });
+}
+// Called on sign-out: tells the site this phone no longer gets pushes for the account.
+function pushRemoveToken() {
+  return kv('pushtoken').then(function (t) { if (!t || !PUSH_ON) return null; return acctCall('/api/account/push-remove', { token: t }); }).catch(function () {});
 }
 var P = (window.Capacitor && window.Capacitor.Plugins) || {};
 function el(tag, text, cls) { var e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; }
@@ -93,7 +99,7 @@ function pickStay(stays) {
 function profileFrom(me, old) {
   var o = old || {}; var oth = (me.others || []).map(function (x) { return x.name || x.email || x.phone || ''; }).filter(Boolean).join(', ');
   var pets = me.pets; if (Array.isArray(pets)) pets = pets.map(function (x) { return typeof x === 'string' ? x : (x.name || ''); }).join(', '); else if (pets && typeof pets === 'object') pets = pets.name || ''; else if (pets === true) pets = 'Yes'; else if (!pets) pets = '';
-  return { name: me.name || '', email: me.email || '', phone: me.phone || '', others: oth, pets: String(pets), nEmail: !(me.notify && me.notify.email === false), nPush: o.nPush !== false };
+  return { name: me.name || '', email: me.email || '', phone: me.phone || '', others: oth, pets: String(pets), nEmail: !(me.notify && me.notify.email === false), nPush: !(me.notify && me.notify.push === false) };
 }
 function leaveDemo() { LS.removeItem('demo'); ['stay', 'trip', 'safety', 'checks', 'profile', 'chat', 'token', 'rv_door', 'rv_wifi', 'rv_garage'].forEach(kvDel); }
 function signedIn() { return kv('stay').then(function (v) { return !!v; }); }

@@ -10,7 +10,7 @@ var SITE = 'https://hermitagehousechicago.com';
 // The host side (host.html) ships switched OFF until its demo account for the stores exists and Legal's review-notes clause is in (Legal, Nov 11 and 12, 2026). One word turns it on.
 var HOST_ON = false;
 // Push for host messages ships switched OFF. It stays off until Legal's wording, the Privacy line, the Apple push capability and the site route are all in place (Legal, Nov 23, 2026). One word turns it on.
-var PUSH_ON = false;
+var PUSH_ON = true;
 // Asks the guest's phone for permission and registers its push token with the site. Does nothing while PUSH_ON is false, or off iPhone.
 var PUSH_LISTENING = false;
 function pushSetup() {
